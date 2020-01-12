@@ -71,7 +71,7 @@ constHeight = constHeight();
  * given: Cathetus and Opposite Angle
  *
  * c: Cathetus (leg)
- * oA: Opposite Angle
+ * oA: Opposite Angle (< 90)
  */
  function hypot1( c, oA) = c / sin(oA);
 
@@ -80,7 +80,7 @@ constHeight = constHeight();
   * given: Cathetus and Adjacent Angle
   *
   * c: Cathetus (leg)
-  * oA: Adjacent Angle
+  * oA: Adjacent Angle (< 90)
   */
  function hypot2( c, aA) = c / cos(aA);
 
@@ -102,7 +102,7 @@ constHeight = constHeight();
  */
  function cathetus( c, hypot ) = //echo(c, hypot)
     sqrt(pow(hypot, 2) - pow(c, 2));
-
+// hypot > c
 
  /*
   * calculate the cathetus
@@ -115,7 +115,7 @@ constHeight = constHeight();
   */
  function cathetus1( c, h ) =
     pow(c, 2)/sqrt(pow(c, 2) - pow(h, 2));
-
+// h < c
 /*
  * calculate angle
  * given: other angle
@@ -123,6 +123,7 @@ constHeight = constHeight();
  * a: angle
  */
  function angle( a ) = 90 - a;
+//a < 90
 
  /*
   * calculate angle
@@ -132,6 +133,7 @@ constHeight = constHeight();
   * hypot: hypotenuse
   */
  function angle2( c, hypot ) = asin(c/hypot);
+//hypot > c
 
 /*
  * calculate the height
@@ -216,10 +218,12 @@ constHeight = constHeight();
    [c1, c2, hypot, aA, oA, h];
 
 /*
+ * (R)ight (A)ngle (C)athetus + (Hypot)enuse
+ * calculates the attributes of a right triangle given
+ * a cathetus and the hypotenuse
  *
- *
- *
- *
+ * c: cathetus
+ * hypot: hypotenuse
  */
  function raCHypot( c, hypot ) = // ( Cathetus, hypotenuse)
     (c == undef) ? undef :
@@ -233,10 +237,12 @@ constHeight = constHeight();
     [c, c2, hypot, aA, oA, h];
 
 /*
+ * (R)ight (A)ngle (C)athetus + (H)eight
+ * calculates the attributes of a right trigangle given
+ * a cathetus and the height of the trigangle
  *
- *
- *
- *
+ * c: cathetus
+ * h: height
  */
  function raCHeight( c, h ) =
   (h >= c) ? echo(" h has to be less than c") undef :
@@ -251,17 +257,39 @@ constHeight = constHeight();
   [c, c2, hypot, aA, oA, h];
 
 /*
+ * (R)ight (A)ngle (Hypot)enuse + (H)eight
+ * calculates the attributes of a right trigangle given
+ * the hypotenuse and the height of the trigangle
  *
- *
- *
- *
+ * hypot: hypotenuse
+ * h: height
  */
- function raHypotHeight( hypot, h ) = undef;
+ function raHypotHeight( hypot, h ) =
+   (c == undef) ? undef :
+   (h == undef) ? undef :
+   let(
+     c1 = undef,
+     c2 = undef,
+     oA = undef,
+     aA = undef
+   )
+   [c1, c2, hypot, aA, oA, h];
 
 /*
+ * (R)ight (A)ngle (A)ngle + (H)eight
+ * calculates the attributes of a right trigangle given
+ * an angle and the height of the trigangle
  *
- *
- *
- *
+ * a: angle
+ * h: height
  */
- function raAHeight( a, h ) = undef;
+ function raAHeight( a, h ) =
+   (c == undef) ? undef :
+   (h == undef) ? undef :
+   let(
+     hypot = undef,
+     c1 = undef,
+     c2 = undef,
+     aA = undef
+   )
+   [c1, c2, hypot, aA, a, h];

@@ -5,9 +5,10 @@
  *
  */
 
- use <missile/missile.scad>
- use <testcard/testcard.scad>
- use <pwpearson/rightTriangle.scad>
+ use <pwpSCAD/rightTriangle.scad>
+
+ //A really small value useful in comparing FP numbers. ie: abs(a-b)<EPSILON
+ epsilon = 1e-9;
 
  /*
   * there is an issue when doing tests with generated values that are not rational
@@ -219,6 +220,6 @@ module test_raCHeight() {
 }
 
 test_raCHeight();
-
+//negative test, c & h == undef; h >= c
 
 // test angles
