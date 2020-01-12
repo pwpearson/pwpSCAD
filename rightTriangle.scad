@@ -6,7 +6,6 @@
 
 include <missile/missile.scad>
 
-
 /*
  * Assume the following right triangle for the following tests
  *
@@ -42,9 +41,9 @@ include <missile/missile.scad>
 
 /* define Constants
  * the right triangle calculated attributes vector output is as follows.
- * [constCathetus1, constCathetus2, constHypot, constAngle1, constAngle2, constHeight]
- * [ a, b, c, α, β, h] or
- * [ b, a, c, β, α, h] depending on order of input.
+ * [constCathetus1, constCathetus2, constHypot, constAngle1, constAngle2,
+ * constHeight] [ a, b, c, α, β, h] or [ b, a, c, β, α, h] depending on order of
+ * input.
  */
 function constCathetus1() = 0;
 function constCathetus2() = 1;
@@ -64,7 +63,7 @@ constHeight = constHeight();
  *
  *
  */
- function rightAngleCalculator(a, b, c, alpha, beta, h) = 1;
+function rightAngleCalculator(a, b, c, alpha, beta, h) = 1;
 
 /*
  * calculate hypotenuse
@@ -73,25 +72,25 @@ constHeight = constHeight();
  * c: Cathetus (leg)
  * oA: Opposite Angle (< 90)
  */
- function hypot1( c, oA) = c / sin(oA);
+function hypot1(c, oA) = c / sin(oA);
 
- /*
-  * calculate hypotenuse
-  * given: Cathetus and Adjacent Angle
-  *
-  * c: Cathetus (leg)
-  * oA: Adjacent Angle (< 90)
-  */
- function hypot2( c, aA) = c / cos(aA);
+/*
+ * calculate hypotenuse
+ * given: Cathetus and Adjacent Angle
+ *
+ * c: Cathetus (leg)
+ * oA: Adjacent Angle (< 90)
+ */
+function hypot2(c, aA) = c / cos(aA);
 
- /*
-  * calculate hypotenuse
-  * given: Both Cathetus
-  *
-  * c1: Cathetus (leg)
-  * c2: Cathetus (leg)
-  */
- function hypotPythagorean( c1, c2 ) = sqrt(pow(c1, 2) + pow(c2, 2));
+/*
+ * calculate hypotenuse
+ * given: Both Cathetus
+ *
+ * c1: Cathetus (leg)
+ * c2: Cathetus (leg)
+ */
+function hypotPythagorean(c1, c2) = sqrt(pow(c1, 2) + pow(c2, 2));
 
 /*
  * calculate cathetus
@@ -100,21 +99,20 @@ constHeight = constHeight();
  * c: Cathetus (other leg)
  * hypot: hypotenuse
  */
- function cathetus( c, hypot ) = //echo(c, hypot)
+function cathetus(c, hypot) = // echo(c, hypot)
     sqrt(pow(hypot, 2) - pow(c, 2));
 // hypot > c
 
- /*
-  * calculate the cathetus
-  * given: a cathetus and the height
-  *
-  * c =	a2 / √(a2 - h2)
-  *
-  * c: Cathetus
-  * h: height
-  */
- function cathetus1( c, h ) =
-    pow(c, 2)/sqrt(pow(c, 2) - pow(h, 2));
+/*
+ * calculate the cathetus
+ * given: a cathetus and the height
+ *
+ * c =	a2 / √(a2 - h2)
+ *
+ * c: Cathetus
+ * h: height
+ */
+function cathetus1(c, h) = pow(c, 2) / sqrt(pow(c, 2) - pow(h, 2));
 // h < c
 /*
  * calculate angle
@@ -122,18 +120,18 @@ constHeight = constHeight();
  *
  * a: angle
  */
- function angle( a ) = 90 - a;
-//a < 90
+function angle(a) = 90 - a;
+// a < 90
 
- /*
-  * calculate angle
-  * given: other angle
-  *
-  * c: cathetus
-  * hypot: hypotenuse
-  */
- function angle2( c, hypot ) = asin(c/hypot);
-//hypot > c
+/*
+ * calculate angle
+ * given: other angle
+ *
+ * c: cathetus
+ * hypot: hypotenuse
+ */
+function angle2(c, hypot) = asin(c / hypot);
+// hypot > c
 
 /*
  * calculate the height
@@ -143,8 +141,8 @@ constHeight = constHeight();
  * c2: second Cathetus
  * hypot: hypotenuse
  */
- function height( c1, c2, hypot ) = //echo(c1, c2, hypot)
-    (c1 * c2)/hypot;
+function height(c1, c2, hypot) = // echo(c1, c2, hypot)
+    (c1 * c2) / hypot;
 
 /*
  * (R)ight (A)ngle (C)athetus (O)pposite (A)ngle
@@ -157,20 +155,16 @@ constHeight = constHeight();
  * expected values should be [a, α] or [b, β]
  *
  * because there is no way to verify a valid set from an invalid set it is
- * up to the user of the library to make sure the values provided match. Otherwise
- * wrong numbers will be calculated.
+ * up to the user of the library to make sure the values provided match.
+ * Otherwise wrong numbers will be calculated.
  */
- function raCOA(c = undef, oA = undef) =
-    (c == undef) ? undef :
-    (oA == undef) ? undef :
-    let(
-      hypot = hypot1(c, oA),
-      c2 = cathetus(c, hypot),
-      aA = angle(oA),
-      h = height(c, c2, hypot)
-    )
-    [c, c2, hypot, oA, aA, h];
-
+function raCOA(c = undef, oA = undef) =
+    (c == undef) ? undef
+                 : (oA == undef)
+                       ? undef
+                       : let(hypot = hypot1(c, oA), c2 = cathetus(c, hypot),
+                             aA = angle(oA),
+                             h = height(c, c2, hypot))[c, c2, hypot, oA, aA, h];
 
 /*
  * (R)ight (A)ngle (C)athetus (A)djacent (A)ngle
@@ -183,20 +177,16 @@ constHeight = constHeight();
  * expected values should be [a, β] or [b, α]
  *
  * because there is no way to verify a valid set from an invalid set it is
- * up to the user of the library to make sure the values provided match. Otherwise
- * wrong numbers will be calculated.
+ * up to the user of the library to make sure the values provided match.
+ * Otherwise wrong numbers will be calculated.
  */
- function raCAA( c, aA ) = //(a, Beta) || (b, Alpha)
-    (c == undef) ? undef :
-    (aA == undef) ? undef :
-    let(
-      hypot = hypot2(c, aA),
-      c2 = cathetus( c, hypot),
-      oA = angle(aA),
-      h = height(c, c2, hypot)
-    )
-    [c, c2, hypot, aA, oA, h];
-
+function raCAA(c, aA) = //(a, Beta) || (b, Alpha)
+    (c == undef) ? undef
+                 : (aA == undef)
+                       ? undef
+                       : let(hypot = hypot2(c, aA), c2 = cathetus(c, hypot),
+                             oA = angle(aA),
+                             h = height(c, c2, hypot))[c, c2, hypot, aA, oA, h];
 
 /*
  * (R)ight (A)ngle (C)athetus + (C)athetus
@@ -206,16 +196,14 @@ constHeight = constHeight();
  * c1: Cathetus
  * c2: Cathetus
  */
- function raCC( c1, c2 ) = // ( both Cathetus )
-   (c1 == undef) ? undef :
-   (c2 == undef) ? undef :
-   let(
-      hypot = hypotPythagorean( c1, c2 ),
-      oA = asin(c1/hypot),
-      aA = asin(c2/hypot),
-      h = height(c1, c2, hypot)
-   )
-   [c1, c2, hypot, aA, oA, h];
+function raCC(c1, c2) = // ( both Cathetus )
+    (c1 == undef)
+        ? undef
+        : (c2 == undef)
+              ? undef
+              : let(hypot = hypotPythagorean(c1, c2), oA = asin(c1 / hypot),
+                    aA = asin(c2 / hypot),
+                    h = height(c1, c2, hypot))[c1, c2, hypot, aA, oA, h];
 
 /*
  * (R)ight (A)ngle (C)athetus + (Hypot)enuse
@@ -225,16 +213,13 @@ constHeight = constHeight();
  * c: cathetus
  * hypot: hypotenuse
  */
- function raCHypot( c, hypot ) = // ( Cathetus, hypotenuse)
-    (c == undef) ? undef :
-    (hypot == undef) ? undef :
-    let(
-      c2 = cathetus( c, hypot),
-      oA = angle2( c, hypot ),
-      aA = angle2( c2, hypot ),
-      h = height( c, c2, hypot )
-    )
-    [c, c2, hypot, aA, oA, h];
+function raCHypot(c, hypot) = // ( Cathetus, hypotenuse)
+    (c == undef) ? undef
+                 : (hypot == undef)
+                       ? undef
+                       : let(c2 = cathetus(c, hypot), oA = angle2(c, hypot),
+                             aA = angle2(c2, hypot),
+                             h = height(c, c2, hypot))[c, c2, hypot, aA, oA, h];
 
 /*
  * (R)ight (A)ngle (C)athetus + (H)eight
@@ -244,17 +229,15 @@ constHeight = constHeight();
  * c: cathetus
  * h: height
  */
- function raCHeight( c, h ) =
-  (h >= c) ? echo(" h has to be less than c") undef :
-  (c == undef) ? undef :
-  (h == undef) ? undef :
-  let(
-    hypot = cathetus1( c, h ),
-    c2 = cathetus( c, hypot ),
-    oA = angle2( c, hypot ),
-    aA = angle( oA )
-  )
-  [c, c2, hypot, aA, oA, h];
+function raCHeight(c, h) =
+    (h >= c) ? echo(" h has to be less than c") undef
+             : (c == undef)
+                   ? undef
+                   : (h == undef)
+                         ? undef
+                         : let(hypot = cathetus1(c, h), c2 = cathetus(c, hypot),
+                               oA = angle2(c, hypot),
+                               aA = angle(oA))[c, c2, hypot, aA, oA, h];
 
 /*
  * (R)ight (A)ngle (Hypot)enuse + (H)eight
@@ -264,16 +247,11 @@ constHeight = constHeight();
  * hypot: hypotenuse
  * h: height
  */
- function raHypotHeight( hypot, h ) =
-   (c == undef) ? undef :
-   (h == undef) ? undef :
-   let(
-     c1 = undef,
-     c2 = undef,
-     oA = undef,
-     aA = undef
-   )
-   [c1, c2, hypot, aA, oA, h];
+function raHypotHeight(hypot, h) =
+    (c == undef) ? undef
+                 : (h == undef) ? undef
+                                : let(c1 = undef, c2 = undef, oA = undef,
+                                      aA = undef)[c1, c2, hypot, aA, oA, h];
 
 /*
  * (R)ight (A)ngle (A)ngle + (H)eight
@@ -283,13 +261,10 @@ constHeight = constHeight();
  * a: angle
  * h: height
  */
- function raAHeight( a, h ) =
-   (c == undef) ? undef :
-   (h == undef) ? undef :
-   let(
-     hypot = undef,
-     c1 = undef,
-     c2 = undef,
-     aA = undef
-   )
-   [c1, c2, hypot, aA, a, h];
+function raAHeight(a, h) = (c == undef)
+                               ? undef
+                               : (h == undef)
+                                     ? undef
+                                     : let(hypot = undef, c1 = undef,
+                                           c2 = undef,
+                                           aA = undef)[c1, c2, hypot, aA, a, h];
