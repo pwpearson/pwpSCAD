@@ -63,7 +63,7 @@ constHeight = constHeight();
  *
  *
  */
-function rightAngleCalculator(a, b, c, alpha, beta, h) = 1;
+function rightAngleCalculator(a, b, c, alpha, beta, h) = undef;
 
 /*
  * calculate hypotenuse

@@ -1,0 +1,8 @@
+{
+  "***/*.scad": [{
+    "cmd": ["openscad-format -f -i {path}"],
+    "showOutput": true,
+    "showError": true,
+    "preferLocal": true
+  }]
+}
