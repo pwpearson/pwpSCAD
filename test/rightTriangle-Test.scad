@@ -5,15 +5,10 @@
  *
  */
 
+use <pwpSCAD/debug.scad>
 use <pwpSCAD/rightTriangle.scad>
 
-_debug = false;
-
-module debug(s)
-{
-  if (_debug)
-    echo(s);
-}
+$_debug = false;
 
 // A really small value useful in comparing FP numbers. ie: abs(a-b)<EPSILON
 epsilon = 1e-003;
@@ -61,7 +56,7 @@ constAngle1 = constAngle1();
 constAngle2 = constAngle2();
 constHeight = constHeight();
 
-function _eq(x, y) = (_debug) ?
+function _eq(x, y) = ($_debug) ?
     echo(str("x: ", x, ", y: ", y, ", abs(x-y): ", abs(x - y))) abs(x - y) < epsilon :
     abs(x - y) < epsilon;
 
@@ -261,9 +256,117 @@ module test_raCHeight()
 {
   echo("**** test_raCHeight - run");
   triangle345 = raCHeight(c = 3, h = 2.4);
-  debug(str("triangle345 a raCHeight", triangle345));
+  debug(str("triangle345 raCHeight", triangle345));
 
   assertRightTriangleVectors(triangle345, targetVector345);
 }
 
 test_raCHeight();
+
+/*
+ *
+ *    β=53.13 +
+ *            ++
+ *            + +
+ *        a=3 +  + c=5
+ *            +   +
+ *            ++   +
+ *          𝛄 +++++++ α=36.87
+ *              b=4
+ *        h=2.4
+ */
+module test_cathetusAB()
+{
+  legs = cathetusAB(hypot = 5, h = 2.4);
+  echo("test_cathetus, legs: ", legs);
+}
+
+test_cathetusAB();
+
+/*
+ *
+ *    β=53.13 +
+ *            ++
+ *            + +
+ *        a=3 +  + c=5
+ *            +   +
+ *            ++   +
+ *          𝛄 +++++++ α=36.87
+ *              b=4
+ *        h=2.4
+ */
+module test_cathetusAFromHeightAngle()
+{
+  a = cathetusAFromHeightAngle(a = 36.87, h = 2.4);
+  echo("test_cathetusAFromHeightAngle, a: ", a);
+}
+
+test_cathetusAFromHeightAngle();
+
+/*
+ *
+ *    β=53.13 +
+ *            ++
+ *            + +
+ *        a=3 +  + c=5
+ *            +   +
+ *            ++   +
+ *          𝛄 +++++++ α=36.87
+ *              b=4
+ *        h=2.4
+ */
+module test_cathetusBFromHeightAngle()
+{
+  b = cathetusBFromHeightAngle(a = 36.87, h = 2.4);
+  echo("test_cathetusAFromHeightAngle, b: ", b);
+}
+
+test_cathetusBFromHeightAngle();
+
+/*
+ *
+ *    β=53.13 +
+ *            ++
+ *            + +
+ *        a=3 +  + c=5
+ *            +   +
+ *            ++   +
+ *          𝛄 +++++++ α=36.87
+ *              b=4
+ *        h=2.4
+ */
+module test_raHypotHeight()
+{
+
+  echo("**** test_raHypotHeight - run");
+  triangle345 = raHypotHeight(hypot = 5, h = 2.4);
+  debug(str("triangle345 raHypotHeight", triangle345));
+
+  assertRightTriangleVectors(triangle345, targetVector345);
+}
+
+test_raHypotHeight();
+
+/*
+ *
+ *    β=53.13 +
+ *            ++
+ *            + +
+ *        a=3 +  + c=5
+ *            +   +
+ *            ++   +
+ *          𝛄 +++++++ α=36.87
+ *              b=4
+ *        h=2.4
+ */
+module test_raAHeight()
+{
+
+  echo("**** test_raAHeight - run");
+  triangle345 = raAHeight(a = 36.87, h = 2.4);
+  debug(str("triangle345 raAHeight", triangle345));
+
+  assertRightTriangleVectors(triangle345, targetVector345);
+}
+
+test_raAHeight();

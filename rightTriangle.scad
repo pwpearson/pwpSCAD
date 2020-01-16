@@ -4,7 +4,8 @@
  *
  */
 
-include <missile/missile.scad>
+// use <BOSL/math.scad>
+use <pwpSCAD/math.scad>
 
 /*
  * Assume the following right triangle for the following tests
@@ -68,11 +69,71 @@ constAngle1 = constAngle1();
 constAngle2 = constAngle2();
 constHeight = constHeight();
 
+_postionalValues = [ 1, 2, 4, 8, 16, 32 ]; // [a = 1, b = 2, c = 4, alpha = 8, beta = 16, h = 32]
+
 /*
  *
  *
  */
-function rightAngleCalculator(a, b, c, alpha, beta, h) = undef;
+function rightTriangleCalculator(a = undef,
+                                 b = undef,
+                                 c = undef,
+                                 alpha = undef,
+                                 beta = undef,
+                                 h = undef) =
+    let(argVector = rightTriangeToList(a, b, c, alpha, beta, h),
+        args = reduceVector(argVector),
+        pValues = genPostionalValues(argVector, _postionalValues),
+        index = sumPositional(argVector, _postionalValues),
+        argCount = len(args)) echo("argVector: ", argVector) echo("pValues: ", pValues)
+        callFunction(index, args[0], args[1]);
+
+echo("Calc ab ", rightTriangleCalculator(a = 3, b = 4));
+echo("Calc ac ", rightTriangleCalculator(a = 3, c = 5));
+echo("Calc ac ", rightTriangleCalculator(b = 4, c = 5));
+echo("Calc aAlpha", rightTriangleCalculator(a = 3, alpha = 36.87));
+echo("Calc bAlpha", rightTriangleCalculator(b = 4, alpha = 36.87));
+
+function callFunction(i, w, z) = echo("function: ", i) i == 3 ? raCC(w, z) :        //_a + _b
+    i == 5 ? raCHypot(w, z) :                                                       //_a + _c
+        i == 6 ? raCHypot(w, z) :                                                   //_b + _c
+            i == 9 ? raCOA(w, z) :                                                  //_a + _alpha
+                i == 10 ? raCAA(w, z) :                                             //_b + _alpha
+                    i == 12 ? undefinedFunctionError(w, z) :                        //_c + _alpha
+                        i == 17 ? raCAA(w, z) :                                     //_a + _beta
+                            i == 18 ? raCOA(w, z) :                                 //_b + _beta
+                                i == 20 ? undefinedFunctionError(w, z, "") :        //_c + _beta
+                                    i == 24 ? invalidArgumentError(w, z, "") :      //_alpha + _beta
+                                        i == 33 ? raCHeight(w, z) :                 //_a + _h
+                                            i == 34 ? raCHeight(w, z) :             //_b + _h
+                                                i == 36 ? raHypotHeight(w, z) :     //_c + _h
+                                                    i == 40 ? raAHeight(w, z) :     //_alpha + _h
+                                                        i == 48 ? raAHeight(w, z) : //_beta + _h
+                                                            NaN();                  // default
+
+function rightTriangeToList(a, b, c, alpha, beta, h) = [ a, b, c, alpha, beta, h ];
+
+/*
+ * sum the elements of a list.
+ * skip undef elements
+ *
+ */
+function sum(v, i = 0, tot = undef) =
+    i >= len(v) ? tot :
+                  let(element = is_undef(v[i]) ? 0 : v[i])
+                      sum(v, i + 1, ((tot == undef) ? element : tot + element));
+
+function sumPositional(v, p) = sum([for (i = [0:len(v)]) if (!is_undef(v[i])) p[i]]);
+
+function genPostionalValues(v, p) = [for (i = [0:len(v)]) if (!is_undef(v[i])) p[i]];
+
+function reduceVector(v) = [for (i = [0:len(v)]) each v[i]];
+
+function invalidArgumentError(arg1, arg2, s) =
+    echo(str("Invalid argument arg1: ", arg1, " arg2: ", arg2, " Msg: ", s)) NaN();
+
+function undefinedFunctionError(arg1, arg2, s) =
+    echo(str("No function defined for arg1 ", arg1, " arg2: ", arg2, " Msg: ", s)) undef;
 
 /*
  * calculate hypotenuse
@@ -157,12 +218,11 @@ function cathetus(c, hypot) =                                 //
 function cathetus1(c, h) =                                     //
     assert(!is_undef(c), "Cathetus is undef")                  //
     assert(!is_undef(h), "Height is undef")                    //
-    assert(is_num(c), "Cathetus is expected to be numeric")    //
+    assert(is_num(c), "Cathetus is expected to be ,numeric")    //
     assert(is_num(h), "Height is expected to be numeric")      //
     assert(h < c, "The Height must be less than the Cathetus") //
 
-    pow(c, 2) /
-    sqrt(pow(c, 2) - pow(h, 2));
+    (pow(c, 2) / sqrt(pow(c, 2) - pow(h, 2)));
 
 /*
  * calculate both cathetuses
@@ -181,8 +241,38 @@ function cathetusAB(hypot, h) =                                                 
     assert(is_num(h), "Height is expected to be numeric")                                 //
     assert(h < (hypot / 2), "Height needs to be smaller than half the size of the Hypot") //
 
-        [sqrt(pow(hypot, 2) + sqrt(pow(hypot, 4) - 4 * pow(hypot, 2) * pow(h, 2)) / 2),
-         sqrt(pow(hypot, 2) - sqrt(pow(hypot, 4) - 4 * pow(hypot, 2) * pow(h, 2)) / 2)];
+        [sqrt((pow(hypot, 2) - sqrt((pow(hypot, 4) - (4 * pow(hypot, 2) * pow(h, 2))))) / 2),
+         sqrt((pow(hypot, 2) + sqrt((pow(hypot, 4) - (4 * pow(hypot, 2) * pow(h, 2))))) / 2)];
+
+/*
+ *
+ *
+ *
+ *
+ *
+ */
+function cathetusAFromHeightAngle(a, h) =                 //
+    assert(!is_undef(a), "Angle is, undef")               //
+    assert(!is_undef(h), "Height is undef")               //
+    assert(is_num(a), "Angle is expected to be numeric")  //
+    assert(is_num(h), "Height is expected to be numeric") //
+
+    (h / cos(a));
+
+/*
+ *
+ *
+ *
+ *
+ *
+ */
+function cathetusBFromHeightAngle(a, h) =                 //
+    assert(!is_undef(a), "Angle is, undef")               //
+    assert(!is_undef(h), "Height is undef")               //
+    assert(is_num(a), "Angle is expected to be numeric")  //
+    assert(is_num(h), "Height is expected to be numeric") //
+
+    (h / sin(a));
 
 /*
  * calculate angle
@@ -240,8 +330,10 @@ function height(c1, c2, hypot) =                                 // echo(c1, c2,
 
     ((c1 * c2) / hypot);
 
+/*****************************************************************************************/
+
 /*
- * (R)ight (A)ngle (C)athetus (O)pposite (A)ngle
+ * (R)i,ght (A)ngle (C)athetus (O)pposite (A)ngle
  * calculates the attributes of a right triangle given
  * a cathetus and the opposite angle (a && alpha) || (b && beta)
  *
@@ -252,7 +344,7 @@ function height(c1, c2, hypot) =                                 // echo(c1, c2,
  *
  * because there is no way to verify a valid set from an invalid set it is
  * up to the user of the library to make sure the values provided match.
- * Otherwise wrong numbers will be calculat,,ed.
+ * Otherwise wrong numbers will be calculat,,,,,ed.
  */
 function raCOA(c, oA) =                                            //
     assert(!is_undef(c), "Cathetus is undef")                      //
@@ -357,29 +449,32 @@ function raCHeight(c, h) =                                         // ( Cathetus
  * h: height
  */
 function raHypotHeight(hypot, h) =                           // ( Hypotenuse, Height)
-    assert(!is_undef(hypot), "Hypot is undef")               //
+    assert(!is_undef(hypot), ",Hypot is undef")               //
     assert(!is_undef(h), "Height is undef")                  //
     assert(is_num(hypot), "Hypot is expected to be numeric") //
     assert(is_num(h), "Height is expected to be numeric")    //
     assert(h < (hypot / 2), "Height needs to be smaller than half the size of the Hypot") //
 
     let(v = cathetusAB(hypot, h),
-        c1 = v[cathetus1],
-        c2 = v[cathetus2],
+        c1 = v[constCathetus1],
+        c2 = v[constCathetus2],
         oA = angle2(c1, hypot),
         aA = angle2(c2, hypot))[c1, c2, hypot, aA, oA, h];
 /*
- * (R)ight (A)ngle (A),,ngle + (H)eight
+ * (R)ight (A)ngle (A)ngle + (H)eight
  * calculates the attributes of a ri,,ght trigangle given
  * an angle and the height of the trigangle
  *
  * a: angle
  * h: height
  */
-function raAHeight(a, h) =                                // (Ang,le, Height)
+function raAHeight(a, h) =                                // (Angle, Height)
     assert(!is_undef(a), "Angle is undef")                //
     assert(!is_undef(h), "Height is undef")               //
     assert(is_num(a), "Angle is expected to be numeric")  //
     assert(is_num(h), "Height is expected to be numeric") //
 
-    let(hypot = undef, c1 = undef, c2 = undef, aA = undef)[c1, c2, hypot, aA, a, h];
+    let(c1 = cathetusAFromHeightAngle(a, h),
+        aA = angle(a),
+        c2 = cathetusBFromHeightAngle(a, h),
+        hypot = hypotPythagorean(c1, c2))[c1, c2, hypot, aA, a, h];
