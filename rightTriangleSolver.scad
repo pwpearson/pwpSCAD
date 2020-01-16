@@ -5,7 +5,10 @@
  */
 
 // use <BOSL/math.scad>
+use <pwpSCAD/debug.scad>
 use <pwpSCAD/math.scad>
+
+$_debug = false;
 
 /*
  * Assume the following right triangle for the following tests
@@ -55,12 +58,12 @@ use <pwpSCAD/math.scad>
  * constHeight] [ a, b, c, α, β, h] or [ b, a, c, β, α, h] depending on order of
  * input.
  */
-function constCathetus1() = 0;
-function constCathetus2() = 1;
-function constHypot() = 2;
-function constAngle1() = 3;
-function constAngle2() = 4;
-function constHeight() = 5;
+function constCathetus1() = 0; // a
+function constCathetus2() = 1; // b
+function constHypot() = 2;     // hypot
+function constAngle1() = 3;    // adjacent angle to a; opposite angle to b;
+function constAngle2() = 4;    // opposite angle to a; adjacent angle to b;
+function constHeight() = 5;    // height
 
 constCathetus1 = constCathetus1();
 constCathetus2 = constCathetus2();
@@ -69,47 +72,77 @@ constAngle1 = constAngle1();
 constAngle2 = constAngle2();
 constHeight = constHeight();
 
-_postionalValues = [ 1, 2, 4, 8, 16, 32 ]; // [a = 1, b = 2, c = 4, alpha = 8, beta = 16, h = 32]
+_postionalValues =
+    [for (i = [0:5]) pow(2, i)]; // [a = 1, b = 2, c = 4, alpha = 8, beta = 16, h = 32]
 
 /*
  *
  *
  */
-function rightTriangleCalculator(a = undef,
-                                 b = undef,
-                                 c = undef,
-                                 alpha = undef,
-                                 beta = undef,
-                                 h = undef) =
-    let(argVector = rightTriangeToList(a, b, c, alpha, beta, h),
-        args = reduceVector(argVector),
-        pValues = genPostionalValues(argVector, _postionalValues),
-        index = sumPositional(argVector, _postionalValues),
-        argCount = len(args)) echo("argVector: ", argVector) echo("pValues: ", pValues)
-        callFunction(index, args[0], args[1]);
+function
+    rightTriangleSolver(a = undef, b = undef, c = undef, alpha = undef, beta = undef, h = undef) =
+        let(argVector = rightTriangeToList(a, b, c, alpha, beta, h),
+            args = reduceVector(argVector),
+            pValues = genPositionalValues(argVector, _postionalValues),
+            index = sumPositional(argVector, _postionalValues),
+            argCount = len(args)) echo("argVector: ", argVector) echo("pValues: ", pValues)
+            callFunction(index, args[0], args[1]);
 
-echo("Calc ab ", rightTriangleCalculator(a = 3, b = 4));
-echo("Calc ac ", rightTriangleCalculator(a = 3, c = 5));
-echo("Calc ac ", rightTriangleCalculator(b = 4, c = 5));
-echo("Calc aAlpha", rightTriangleCalculator(a = 3, alpha = 36.87));
-echo("Calc bAlpha", rightTriangleCalculator(b = 4, alpha = 36.87));
+echo("Calc ab ", rightTriangleSolver(a = 3, b = 4));
+echo("Calc ac ", rightTriangleSolver(a = 3, c = 5));
+echo("Calc bc ", rightTriangleSolver(b = 4, c = 5));
+echo("Calc aAlpha", rightTriangleSolver(a = 3, alpha = 36.87));
+echo("Calc bAlpha", rightTriangleSolver(b = 4, alpha = 36.87));
 
-function callFunction(i, w, z) = echo("function: ", i) i == 3 ? raCC(w, z) :        //_a + _b
-    i == 5 ? raCHypot(w, z) :                                                       //_a + _c
-        i == 6 ? raCHypot(w, z) :                                                   //_b + _c
-            i == 9 ? raCOA(w, z) :                                                  //_a + _alpha
-                i == 10 ? raCAA(w, z) :                                             //_b + _alpha
-                    i == 12 ? undefinedFunctionError(w, z) :                        //_c + _alpha
-                        i == 17 ? raCAA(w, z) :                                     //_a + _beta
-                            i == 18 ? raCOA(w, z) :                                 //_b + _beta
-                                i == 20 ? undefinedFunctionError(w, z, "") :        //_c + _beta
-                                    i == 24 ? invalidArgumentError(w, z, "") :      //_alpha + _beta
-                                        i == 33 ? raCHeight(w, z) :                 //_a + _h
-                                            i == 34 ? raCHeight(w, z) :             //_b + _h
-                                                i == 36 ? raHypotHeight(w, z) :     //_c + _h
-                                                    i == 40 ? raAHeight(w, z) :     //_alpha + _h
-                                                        i == 48 ? raAHeight(w, z) : //_beta + _h
-                                                            NaN();                  // default
+// rightTriagleSolver arguments combinations
+_ab = 3;
+_ac = 5;
+_bc = 6;
+_aAlpha = 9;
+_bAlpha = 10;
+_cAlpha = 12;
+_aBeta = 17;
+_bBeta = 18;
+_cBeta = 20;
+_alphaBeta = 24; // invalid combination
+_aH = 33;
+_bH = 34;
+_cH = 36;
+_alphaH = 40;
+_betaH = 48;
+
+/*
+ * callFunction
+ * resolves function to call based on index 'i'
+ *
+ * i: index of the function to call
+ * w: arg1 to pass to function
+ * z: arg2 to pass to function
+ */
+function callFunction(i, w, z) = //
+    $_debug ? echo("function: ", i) :
+              i == _ab ? raCC(w, z) :                                            //_a + _b
+        i == _ac ? raCHypot(w, z) :                                              //_a + _c
+            i == _bc ? raCHypot(w, z) :                                          //_b + _c
+                i == _aAlpha ? raCOA(w, z) :                                     //_a + _alpha
+                    i == _bAlpha ? raCAA(w, z) :                                 //_b + _alpha
+                        i == _cAlpha ? undefinedFunctionError(w, z) :            //_c + _alpha
+                            i == _aBeta ? raCAA(w, z) :                          //_a + _beta
+                                i == _bBeta ? raCOA(w, z) :                      //_b + _beta
+                                    i == _cBeta ? undefinedFunctionError(w, z) : //_c + _beta
+                                        i == _alphaBeta ?
+                                                  invalidArgumentError(w, z) : //_alpha + _beta
+                                            i == _ah ? raCHeight(w, z) :       //_a + _h
+                                                i == _bh ? raCHeight(w, z) :   //_b + _h
+                                                    i == _ch ? raHypotHeight(w, z) : //_c + _h
+                                                        i == _alphaH ?
+                                                               raAHeight(w, z) : //_alpha + _h
+                                                            i == _betaH ?
+                                                               raAHeight(w, z) : //_beta + _h
+                                                                undefinedFunctionError(
+                                                                    w,
+                                                                    z,
+                                                                    ""); // default
 
 function rightTriangeToList(a, b, c, alpha, beta, h) = [ a, b, c, alpha, beta, h ];
 
@@ -118,14 +151,14 @@ function rightTriangeToList(a, b, c, alpha, beta, h) = [ a, b, c, alpha, beta, h
  * skip undef elements
  *
  */
-function sum(v, i = 0, tot = undef) =
+function sumV(v, i = 0, tot = undef) =
     i >= len(v) ? tot :
                   let(element = is_undef(v[i]) ? 0 : v[i])
-                      sum(v, i + 1, ((tot == undef) ? element : tot + element));
+                      sumV(v, i + 1, ((tot == undef) ? element : tot + element));
 
-function sumPositional(v, p) = sum([for (i = [0:len(v)]) if (!is_undef(v[i])) p[i]]);
+function sumPositional(v, p) = sumV([for (i = [0:len(v)]) if (!is_undef(v[i])) p[i]]);
 
-function genPostionalValues(v, p) = [for (i = [0:len(v)]) if (!is_undef(v[i])) p[i]];
+function genPositionalValues(v, p) = [for (i = [0:len(v)]) if (!is_undef(v[i])) p[i]];
 
 function reduceVector(v) = [for (i = [0:len(v)]) each v[i]];
 
@@ -190,7 +223,7 @@ function hypotPythagorean(c1, c2) =                          //
 
 /*
  * calculate cathetus
- * given: other cathetus and hypotenuse
+ * given: other cathetus ,and hypotenuse
  *
  * c = √(hypot^2 - c^2)
  *
@@ -218,7 +251,7 @@ function cathetus(c, hypot) =                                 //
 function cathetus1(c, h) =                                     //
     assert(!is_undef(c), "Cathetus is undef")                  //
     assert(!is_undef(h), "Height is undef")                    //
-    assert(is_num(c), "Cathetus is expected to be ,numeric")    //
+    assert(is_num(c), "Cathetus is expected to be ,numeric")   //
     assert(is_num(h), "Height is expected to be numeric")      //
     assert(h < c, "The Height must be less than the Cathetus") //
 
@@ -426,7 +459,7 @@ function raCHypot(c, hypot) =                                       // ( Cathetu
  * a cathetus and the height of the trigangle
  *
  * c: cathetus
- * h: height
+ * h: heigh,t
  */
 function raCHeight(c, h) =                                         // ( Cathetus, Height)
     assert(!is_undef(c), "Cathetus is undef")                      //
@@ -449,7 +482,7 @@ function raCHeight(c, h) =                                         // ( Cathetus
  * h: height
  */
 function raHypotHeight(hypot, h) =                           // ( Hypotenuse, Height)
-    assert(!is_undef(hypot), ",Hypot is undef")               //
+    assert(!is_undef(hypot), ",Hypot is undef")              //
     assert(!is_undef(h), "Height is undef")                  //
     assert(is_num(hypot), "Hypot is expected to be numeric") //
     assert(is_num(h), "Height is expected to be numeric")    //

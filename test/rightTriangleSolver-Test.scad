@@ -6,7 +6,7 @@
  */
 
 use <pwpSCAD/debug.scad>
-use <pwpSCAD/rightTriangle.scad>
+use <pwpSCAD/rightTriangleSolver.scad>
 
 $_debug = false;
 
