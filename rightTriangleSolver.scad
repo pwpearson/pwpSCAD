@@ -98,7 +98,18 @@ errtInvalidNumberOfArguments = "rightTriangleSolver expects only two arguments t
  * alpha, beta: returns undef. it is not possible to solve a right triangle with two angles.
  *
  *
- * ex: rightTriagleSolver(a=3, b=4); => [3, 4, 5, 53.13, 36.87, 2.4]
+ * ex:
+ *               β=53.13 +
+ *                       ++
+ *                       + +
+ *                   a=3 +  + c=5
+ *                       +   +
+ *                       ++   +
+ *                     𝛄 +++++++ α=36.87
+ *                         b=4
+ *                   h=2.4
+ *
+ *     rightTriagleSolver(a=3, b=4); => [3, 4, 5, 53.13, 36.87, 2.4]
  *     where: 3,4 - the length of the cathetuses
  *              5 - is the hypotenuse
  *          53.13 - is the adjacent angle to the cathetus with length 3
@@ -181,9 +192,19 @@ function calcFuncIndexFromArgs(v) =
   let( argPositonalValues = [ for (i = [0:5]) pow(2, i) ] )
   sumV([for (i = [0:len(v)]) if (!is_undef(v[i])) argPositonalValues[i]]);
 
+/*
+ * invalidArgumentError
+ * echoes error to console and returns undef
+ *
+ */
 function invalidArgumentError(arg1, arg2, s) =
     echo(str("Invalid argument arg1: ", arg1, " arg2: ", arg2, " Msg: ", s)) undef;
 
+/*
+ * undefinedFunctionError
+ * echoes error to console and returns undef
+ *
+ */
 function undefinedFunctionError(arg1, arg2, s) =
     echo(str("No function defined for arg1 ", arg1, " arg2: ", arg2, " Msg: ", s)) undef;
 
