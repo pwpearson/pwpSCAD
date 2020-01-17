@@ -7,6 +7,7 @@
 // use <BOSL/math.scad>
 use <pwpSCAD/math.scad>
 use <pwpSCAD/debug.scad>
+use <pwpSCAD/util.scad>
 
 $_debug = false;
 
@@ -72,47 +73,49 @@ constAngle1 = constAngle1();
 constAngle2 = constAngle2();
 constHeight = constHeight();
 
-_postionalValues = [ for (i = [0:5]) pow(2, i) ]; // [a = 1, b = 2, c = 4, alpha = 8, beta = 16, h = 32]
+errInvalidCombinationError = "This is an invalid combination of values for calculating the solution to a right triangle";
+errtInvalidNumberOfArguments = "rightTriangleSolver expects only two arguments to be set";
 
 /*
+ * rightTriangleSolver (module entry point)
+ * Given two arguments this module will solve for the other values.
  *
+ * returns a list of right triangle values or undef.
+ * args:
+ *            a: Cathetus
+ *            b: Other Cathetus
+ *            c: hypotenuse
+ *    alpha (α): angle opposite of Cathetus a; angle adjacent of Cathetus b
+ *     beta (β): angle adjacent of Cathetus a; angle opposite of Cathetus b
+ *            h: height of triangle
+ *
+ * this fuction expects two parameters to be set and only two. in the case where
+ * more than two args are set the function will return undef.
+ *
+ * this function will also return undef for invalid combinations or argument pairs.
+ *
+ * invalid argument combinations:
+ * alpha, beta: returns undef. it is not possible to solve a right triangle with two angles.
+ *
+ *
+ * ex: rightTriagleSolver(a=3, b=4); => [3, 4, 5, 53.13, 36.87, 2.4]
+ *     where: 3,4 - the length of the cathetuses
+ *              5 - is the hypotenuse
+ *          53.13 - is the adjacent angle to the cathetus with length 3
+ *          36.87 - is the opposite angle to the cathetus with length 3
+ *            2.4 - is the height of the triangle
  *
  */
-function rightTriangleSolver(a = undef,
-                                 b = undef,
-                                 c = undef,
-                                 alpha = undef,
-                                 beta = undef,
-                                 h = undef) =
-    let(argVector = rightTriangeToList(a, b, c, alpha, beta, h),
-        args = reduceVector(argVector),
-        pValues = genPositionalValues(argVector, _postionalValues),
-        index = sumPositional(argVector, _postionalValues),
-        argCount = len(args)) echo("argVector: ", argVector) echo("pValues: ", pValues)
-        callFunction(index, args[0], args[1]);
-
-echo("Calc ab ", rightTriangleSolver(a = 3, b = 4));
-echo("Calc ac ", rightTriangleSolver(a = 3, c = 5));
-echo("Calc bc ", rightTriangleSolver(b = 4, c = 5));
-echo("Calc aAlpha", rightTriangleSolver(a = 3, alpha = 36.87));
-echo("Calc bAlpha", rightTriangleSolver(b = 4, alpha = 36.87));
-
-// rightTriagleSolver arguments combinations
-_ab = 3;
-_ac = 5;
-_bc = 6;
-_aAlpha = 9;
-_bAlpha = 10;
-_cAlpha = 12;
-_aBeta = 17;
-_bBeta = 18;
-_cBeta = 20;
-_alphaBeta = 24; //invalid combination
-_aH = 33;
-_bH = 34;
-_cH = 36;
-_alphaH = 40;
-_betaH = 48;
+function rightTriangleSolver(a = undef, b = undef, c = undef, alpha = undef, beta = undef, h = undef) =
+    let(
+      argVector = [ a, b, c, alpha, beta, h ],
+      args = removeUndefFromVector(argVector),
+      index = calcFuncIndexFromArgs(argVector),
+      argCount = len(args)
+    )
+    argCount == 2 ? callFunction(index, args[0], args[1]) :
+    $_debug ? echo("argVector: ", argVector) :
+    invalidArgumentError(args[0], args[1], errInvalidNumberOfArguments);
 
 /*
  * callFunction
@@ -122,48 +125,70 @@ _betaH = 48;
  * w: arg1 to pass to function
  * z: arg2 to pass to function
  */
-function callFunction(i, w, z) = //
-  $_debug ? echo("function: ", i) :
-  i == _ab ? raCC(w, z) :                               //_a + _b
-  i == _ac ? raCHypot(w, z) :                           //_a + _c
-  i == _bc ? raCHypot(w, z) :                           //_b + _c
-  i == _aAlpha ? raCOA(w, z) :                          //_a + _alpha
-  i == _bAlpha ? raCAA(w, z) :                          //_b + _alpha
-  i == _cAlpha ? undefinedFunctionError(w, z) :         //_c + _alpha
-  i == _aBeta ? raCAA(w, z) :                           //_a + _beta
-  i == _bBeta ? raCOA(w, z) :                           //_b + _beta
-  i == _cBeta ? undefinedFunctionError(w, z) :          //_c + _beta
-  i == _alphaBeta ? invalidArgumentError(w, z) :       //_alpha + _beta
-  i == _ah ? raCHeight(w, z) :                          //_a + _h
-  i == _bh ? raCHeight(w, z) :                          //_b + _h
-  i == _ch ? raHypotHeight(w, z) :                      //_c + _h
-  i == _alphaH ? raAHeight(w, z) :                      //_alpha + _h
-  i == _betaH ? raAHeight(w, z) :                       //_beta + _h
-  undefinedFunctionError(w, z, "");                     // default
-
-function rightTriangeToList(a, b, c, alpha, beta, h) = [ a, b, c, alpha, beta, h ];
+function callFunction(i, w, z) =
+  // these are the sums of all valid 2 pair
+  //argument combinations from rightTriagleSolver
+  let(
+    _ab = 3,
+    _ac = 5,
+    _bc = 6,
+    _aAlpha = 9,
+    _bAlpha = 10,
+    _cAlpha = 12,
+    _aBeta = 17,
+    _bBeta = 18,
+    _cBeta = 20,
+    _alphaBeta = 24, //invalid combination
+    _ah = 33,
+    _bh = 34,
+    _ch = 36,
+    _alphaH = 40,
+    _betaH = 48
+  )
+  $_debug         ? echo(str("function: ", i, " args: ", w, z)) :
+  i == _ab        ? raCC(w, z)                   : //_a + _b
+  i == _ac        ? raCHypot(w, z)               : //_a + _c
+  i == _bc        ? raCHypot(w, z)               : //_b + _c
+  i == _aAlpha    ? raCOA(w, z)                  : //_a + _alpha
+  i == _bAlpha    ? raCAA(w, z)                  : //_b + _alpha
+  i == _cAlpha    ? undefinedFunctionError(w, z) : //_c + _alpha
+  i == _aBeta     ? raCAA(w, z)                  : //_a + _beta
+  i == _bBeta     ? raCOA(w, z)                  : //_b + _beta
+  i == _cBeta     ? undefinedFunctionError(w, z) : //_c + _beta
+  i == _alphaBeta ? invalidArgumentError(w, z, errInvalidCombinationError) : //_alpha + _beta
+  i == _ah        ? raCHeight(w, z)              : //_a + _h
+  i == _bh        ? raCHeight(w, z)              : //_b + _h
+  i == _ch        ? raHypotHeight(w, z)          : //_c + _h
+  i == _alphaH    ? raAHeight(w, z)              : //_alpha + _h
+  i == _betaH     ? raAHeight(w, z)              : //_beta + _h
+  undefinedFunctionError(w, z, "");                // default
 
 /*
- * sum the elements of a list.
- * skip undef elements
+ * calcFuncIndexFromArgs
+ * assign values to each existing arg positon and sum them.
+ *
+ * each arg that is not undef is assigned a number based on a 2^i progression;
+ * where i is the arg position. These values are then summed. The result is used
+ * as an index into the callFunction.
+ *
+ * i.e. given: the arg list is [3, 4, undef, undef, undef, undef] and
+ *             the arg positional values list is [1, 2, 4, 8, 16, 32]
+ *       then: the function index would be 3.
+ *
  *
  */
-function sumV(v, i = 0, tot = undef) =
-    i >= len(v) ? tot :
-                  let(element = is_undef(v[i]) ? 0 : v[i])
-                      sumV(v, i + 1, ((tot == undef) ? element : tot + element));
-
-function sumPositional(v, p) = sumV([for (i = [0:len(v)]) if (!is_undef(v[i])) p[i]]);
-
-function genPositionalValues(v, p) = [for (i = [0:len(v)]) if (!is_undef(v[i])) p[i]];
-
-function reduceVector(v) = [for (i = [0:len(v)]) each v[i]];
+function calcFuncIndexFromArgs(v) =
+  let( argPositonalValues = [ for (i = [0:5]) pow(2, i) ] )
+  sumV([for (i = [0:len(v)]) if (!is_undef(v[i])) argPositonalValues[i]]);
 
 function invalidArgumentError(arg1, arg2, s) =
-    echo(str("Invalid argument arg1: ", arg1, " arg2: ", arg2, " Msg: ", s)) NaN();
+    echo(str("Invalid argument arg1: ", arg1, " arg2: ", arg2, " Msg: ", s)) undef;
 
 function undefinedFunctionError(arg1, arg2, s) =
     echo(str("No function defined for arg1 ", arg1, " arg2: ", arg2, " Msg: ", s)) undef;
+
+/*****************************************************************************************/
+// primitive functions
 
 /*
  * calculate hypotenuse
@@ -240,7 +265,7 @@ function cathetus(c, hypot) =                                 //
  * calculate the cathetus
  * given: a cathetus and the height
  *
- * c =	a2 / √(a2 - h2)
+ * c =  a2 / √(a2 - h2)
  *
  * c: Cathetus
  * h: height
@@ -258,7 +283,7 @@ function cathetus1(c, h) =                                     //
  * calculate both cathetuses
  * given: the hypotenuse and the height
  *
- * c1 =	√hypot^2 + √(hypot^4 - (4)(hypot^2)(h^2)/2)
+ * c1 =  √hypot^2 + √(hypot^4 - (4)(hypot^2)(h^2)/2)
  * c2 = √hypot^2 - √(hypot^4 - (4)(hypot^2)(h^2)/2)
  *
  * c: hypotenuse
@@ -361,6 +386,7 @@ function height(c1, c2, hypot) =                                 // echo(c1, c2,
     ((c1 * c2) / hypot);
 
 /*****************************************************************************************/
+// compound functions; these solve based on a given set of args
 
 /*
  * (R)i,ght (A)ngle (C)athetus (O)pposite (A)ngle

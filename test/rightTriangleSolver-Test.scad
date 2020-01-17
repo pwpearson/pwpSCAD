@@ -370,3 +370,40 @@ module test_raAHeight()
 }
 
 test_raAHeight();
+
+/*
+ *
+ *    β=53.13 +
+ *            ++
+ *            + +
+ *        a=3 +  + c=5
+ *            +   +
+ *            ++   +
+ *          𝛄 +++++++ α=36.87
+ *              b=4
+ *        h=2.4
+ */
+module test_rightTriangeSolver()
+{
+  echo("**** test_rightTriangeSolver - run");
+
+  assertRightTriangleVectors(rightTriangleSolver(a = 3, b = 4), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(a = 3, c = 5), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(b = 4, c = 5), targetVector435);
+  assertRightTriangleVectors(rightTriangleSolver(a = 3, alpha = 36.87), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(b = 4, alpha = 36.87), targetVector435);
+//  assertRightTriangleVectors(rightTriangleSolver(c = 5, alpha = 36.87), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(a = 3, beta = 53.13), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(b = 4, beta = 53.13), targetVector435);
+//  assertRightTriangleVectors(rightTriangleSolver(c = 5, beta = 53.13), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(a = 3, h = 2.4), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(b = 4, h = 2.4), targetVector435);
+  assertRightTriangleVectors(rightTriangleSolver(c = 5, h = 2.4), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(alpha = 36.87, h = 2.4), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(beta = 53.13, h = 2.4), targetVector435);
+
+  assert(is_undef(rightTriangleSolver(alpha = 36.87, beta = 53.13)), "Two angles is not a valid comination");
+
+}
+
+test_rightTriangeSolver();

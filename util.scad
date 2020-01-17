@@ -27,3 +27,11 @@ module ruler(length)
     color(colors[ceil(i % 2)]) move(x = i * 12) cube([ 12, 1, .1 ]);
   }
 }
+
+/*
+ * removeUndefFromVector 
+ * returns a vector with undef elements removed
+ *
+ *
+ */
+function removeUndefFromVector(v) = [for (i = [0:len(v)]) each v[i]];
