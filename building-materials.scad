@@ -3,6 +3,8 @@
  *
  */
 include <MCAD/materials.scad>
+include <pwpSCAD/rightTriangleSolver.scad>
+use <pwpSCAD/util.scad>
 
 // Vector object dimension elements
 // [depth, width, (height|length), angle]
@@ -16,6 +18,8 @@ OFF_SET = 4;
 // all values are in inches;
 eightFeet = 8 * 12;
 fourFeet = 4 * 12;
+
+_epsilon_diff = 1e-004;
 
 /*
 reference
@@ -80,8 +84,54 @@ width4x4 = fourByFour[WIDTH];
 
 /******************************************************************************/
 
+// rightTriangleSolver(a = undef, b = undef, c = undef, alpha = undef, beta = undef, h = undef)
+module inverseLap(lapWidth, lapLength, lapThickness, shoulderAngle) {
+
+  tangle = rightTriangleSolver(a = lapWidth, beta = shoulderAngle);
+  echo(tangle);
+  a = tangle[0];
+  b = tangle[1];
+
+  // polygon points of inverse lap
+  origin = [0 - _epsilon_diff, 0 - _epsilon_diff];
+  topLeftPos = [0 - _epsilon_diff, lapLength + _epsilon_diff];
+  topRightPos = [lapWidth + _epsilon_diff, lapLength - b + _epsilon_diff];
+  topLeftNeg = [0 - _epsilon_diff, lapLength - b + _epsilon_diff];
+  topRightNeg = [lapWidth + _epsilon_diff, lapLength + _epsilon_diff];
+  bottomRight = [lapWidth + _epsilon_diff , 0 - _epsilon_diff];
+
+  points = shoulderAngle > 0 ?
+    [origin, topLeftPos, topRightPos, bottomRight] :
+    [origin, topLeftNeg, topRightNeg, bottomRight];
+
+  echo(points);
+
+  mvrot(z = -_epsilon_diff)
+  linear_extrude(height = lapThickness)
+    polygon( points = points, convexity = 1);
+}
+
+front = 0;
+back = 1;
+top = 0;
+bottom = 1;
+
+module boardWithLap(width, length, thickness, lapWidth, lapLength, lapThickness, shoulderAngle, location){
+
+  // currently coded for Facing: Front-Top
+  difference() {
+    board(width, length, thickness);
+    mvrot(y = length, z = thickness, rx = 180)
+    # inverseLap(lapWidth, lapLength, lapThickness, shoulderAngle);
+  }
+}
+
+module board(width, length, thickness){
+  color(Pine) cube([width, length, thickness]);
+}
+
 module lumber(dimension = twoByFour, length = eightFeet, trueCenter = false) {
-  color(Pine) cube(concat(dimension, [length]), trueCenter);
+  board(dimension[WIDTH], length, dimension[DEPTH]);
 }
 
 module oneByFour(length = eightFeet, trueCenter = false) {

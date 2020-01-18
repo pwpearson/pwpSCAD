@@ -417,7 +417,7 @@ function _height(c1, c2, hypot) =                                 //
     assert(is_num(hypot), "Hypot is expected to be numeric")     //
     assert(c1 < hypot, "Cathetus 1 must be less than the Hypot") //
     assert(c2 < hypot, "Cathetus 2 must be less than the Hypot") //
-    assert(_hypotPythagorean(c1, c2) == hypot, "Invalid Right Triangle, check values") //
+//    assert(_hypotPythagorean(c1, c2) == hypot, "Invalid Right Triangle, check values") //
 
     ((c1 * c2) / hypot);
 
