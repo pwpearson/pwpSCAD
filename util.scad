@@ -75,9 +75,12 @@ module bbox() {
  shrink() bbx() children();
 }
 
-function fn2Str(name, args=[]) = str(name, parseArgsToString(args));
+function fn2Str(name, args=[], rslt=undef) = str(name, parseArgsToString(args), is_undef(rslt) ? "" : str(": ", rslt));
 
 function parseArgsToString(args, i=0, accum=undef) =
   i >= len(args) ? str("(", accum, ")") :
                   let (element = is_undef(args[i]) ? "" : args[i])
                   parseArgsToString(args, i + 1, is_undef(accum) ? element : str(accum, ", ", element));
+
+echo(fn2Str("test", [1,2,3]));
+echo(fn2Str("test2", [1,2,3], 6));
