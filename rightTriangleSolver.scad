@@ -122,11 +122,11 @@ function rightTriangleSolver(a = undef, b = undef, c = undef, alpha = undef, bet
       argVector = [ a, b, c, alpha, beta, h ],
       args = removeUndefFromVector(argVector),
       index = calcFuncIndexFromArgs(argVector),
-      argCount = len(args)
+      argCount = len(args),
+      result = argCount == 2 ? callFunction(index, args[0], args[1]) : undef
     )
-    argCount == 2 ? callFunction(index, args[0], args[1]) :
-    $_debug ? echo("argVector: ", argVector) :
-    invalidArgumentError(args[0], args[1], errInvalidNumberOfArguments);
+    argCount < 2 || argCount < 2 ? invalidArgumentError(args[0], args[1], errInvalidNumberOfArguments) :
+    result;
 
 /*
  * callFunction
@@ -140,6 +140,8 @@ function callFunction(i, w, z) =
   // these are the sums of all valid 2 pair
   //argument combinations from rightTriagleSolver
   let(
+    fn = "callFunction",
+    args = [w, z],
     _ab = 3,
     _ac = 5,
     _bc = 6,
@@ -154,18 +156,18 @@ function callFunction(i, w, z) =
     _bh = 34,
     _ch = 36,
     _alphaH = 40,
-    _betaH = 48
+    _betaH = 48,
+    _args = debugTap(str("fn#: ", i), fn2Str(str(fn, i), args))
   )
-  $_debug         ? echo(str("function: ", i, " args: ", w, z)) :
   i == _ab        ? raCC(w, z)                   : //_a + _b
   i == _ac        ? raCHypot(w, z)               : //_a + _c
   i == _bc        ? raCHypot(w, z)               : //_b + _c
   i == _aAlpha    ? raCOA(w, z)                  : //_a + _alpha
   i == _bAlpha    ? raCAA(w, z)                  : //_b + _alpha
-  i == _cAlpha    ? undefinedFunctionError(w, z) : //_c + _alpha
+  i == _cAlpha    ? raHypotAngle(w, z)           : //_c + _alpha
   i == _aBeta     ? raCAA(w, z)                  : //_a + _beta
   i == _bBeta     ? raCOA(w, z)                  : //_b + _beta
-  i == _cBeta     ? undefinedFunctionError(w, z) : //_c + _beta
+  i == _cBeta     ? raHypotAngle(w, z)           : //_c + _beta
   i == _alphaBeta ? invalidArgumentError(w, z, errInvalidCombinationError) : //_alpha + _beta
   i == _ah        ? raCHeight(w, z)              : //_a + _h
   i == _bh        ? raCHeight(w, z)              : //_b + _h
@@ -300,6 +302,17 @@ function cathetus1(c, h) =                                     //
 
     (pow(c, 2) / sqrt(pow(c, 2) - pow(h, 2)));
 
+function cathetusHypotAngle(hypot, a) =
+  assert(!is_undef(hypot), "Hypotenuse is undef")                  //
+  assert(!is_undef(a), "Angle is undef")                    //
+  assert(is_num(hypot), "Hypotenuse is expected to be numeric")    //
+  assert(is_num(a), "Angle is expected to be numeric")      //
+  assert(a < 90, "Angle expected to be less than 90°") //
+  let(
+    rslt = hypot * sin(a)
+  )
+  rslt;
+
 /*
  * calculate both cathetuses
  * given: the hypotenuse and the height
@@ -332,6 +345,7 @@ function cathetusAFromHeightAngle(a, h) =                 //
     assert(!is_undef(h), "Height is undef")               //
     assert(is_num(a), "Angle is expected to be numeric")  //
     assert(is_num(h), "Height is expected to be numeric") //
+    assert(a < 90, "Angle expected to be less than 90°") //
 
     (h / cos(a));
 
@@ -347,6 +361,7 @@ function cathetusBFromHeightAngle(a, h) =                 //
     assert(!is_undef(h), "Height is undef")               //
     assert(is_num(a), "Angle is expected to be numeric")  //
     assert(is_num(h), "Height is expected to be numeric") //
+    assert(a < 90, "Angle expected to be less than 90°") //
 
     (h / sin(a));
 
@@ -393,7 +408,7 @@ function angle2(c, hypot) =                                   //
  * c2: second Cathetus
  * hypot: hypotenuse
  */
-function height(c1, c2, hypot) =                                 // echo(c1, c2, hypot)
+function height(c1, c2, hypot) =                                 // 
     assert(!is_undef(c1), "Cathetus 1 is undef")                 //
     assert(!is_undef(c2), "Cathetus 2 is undef")                 //
     assert(!is_undef(hypot), "Hypot is undef")                   //
@@ -430,10 +445,16 @@ function raCOA(c, oA) =                                            //
     assert(is_num(oA), "Opposite Angle is expected to be numeric") //
     assert(oA < 90, "Opposite Angle must be less than 90°")        //
 
-    let(hypot = hypot1(c, oA),
-        c2 = cathetus(c, hypot),
-        aA = angle(oA),
-        h = height(c, c2, hypot))[c, c2, hypot, aA, oA, h];
+    let(
+      fn = "raCOA",
+      args = [c, oA],
+      hypot = hypot1(c, oA),
+      c2 = cathetus(c, hypot),
+      aA = angle(oA),
+      h = height(c, c2, hypot),
+      rslt = debugTap([c, c2, hypot, aA, oA, h], fn2Str(fn, args))
+    )
+    rslt;
 
 /*
  * (R)ight (A)ngle (C)athetus (A)djacent (A)ngle
@@ -448,15 +469,21 @@ function raCOA(c, oA) =                                            //
  */
 function raCAA(c, aA) =                                             //(a, Beta) || (b, Alpha)
     assert(!is_undef(c), "Cathetus is undef")                       //
-    assert(!is_undef(aA), "Adjacent ,Angle is, undef")              //
+    assert(!is_undef(aA), "Adjacent Angle is undef")              //
     assert(is_num(c), "Cathetus is expected to be numeric")         //
-    assert(is_num(aA), "Adjacent An,gle is expected to be numeric") //
+    assert(is_num(aA), "Adjacent Angle is expected to be numeric") //
     assert(aA < 90, "Adjacent Angle must be less than 90°")         //
 
-    let(hypot = hypot2(c, aA),
-        c2 = cathetus(c, hypot),
-        oA = angle(aA),
-        h = height(c, c2, hypot))[c, c2, hypot, aA, oA, h];
+    let(
+      fn = "raCAA",
+      args = [c, aA],
+      hypot = hypot2(c, aA),
+      c2 = cathetus(c, hypot),
+      oA = angle(aA),
+      h = height(c, c2, hypot),
+      rslt = debugTap([c, c2, hypot, aA, oA, h], fn2Str(fn, args))
+    )
+    rslt;
 
 /*
  * (R)ight (A)ngle (C)athetus + (C)athetus
@@ -472,10 +499,16 @@ function raCC(c1, c2) =                                      // ( both Cathetus 
     assert(is_num(c1), "Cathetus is expected to be numeric") //
     assert(is_num(c2), "Cathetus is expected to be numeric") //
 
-    let(hypot = hypotPythagorean(c1, c2),
-        oA = asin(c1 / hypot),
-        aA = asin(c2 / hypot),
-        h = height(c1, c2, hypot))[c1, c2, hypot, aA, oA, h];
+    let(
+      fn = "raCC",
+      args = [c1, c2],
+      hypot = hypotPythagorean(c1, c2),
+      oA = asin(c1 / hypot),
+      aA = asin(c2 / hypot),
+      h = height(c1, c2, hypot),
+      rslt = debugTap([c1, c2, hypot, aA, oA, h], fn2Str(fn, args))
+    )
+    rslt;
 
 /*
  * (R)ight (A)ngle (C)athetus + (Hypot)enuse
@@ -492,10 +525,16 @@ function raCHypot(c, hypot) =                                       // ( Cathetu
     assert(is_num(hypot), "Hypotenuse is expected to be numer,ic")  //
     assert(c < hypot, "Cathetus has to be smaller than Hypotenuse") //
 
-    let(c2 = cathetus(c, hypot),
-        oA = angle2(c, hypot),
-        aA = angle2(c2, hypot),
-        h = height(c, c2, hypot))[c, c2, hypot, aA, oA, h];
+    let(
+      fn = "raCHypot",
+      args = [c, hypot],
+      c2 = cathetus(c, hypot),
+      oA = angle2(c, hypot),
+      aA = angle2(c2, hypot),
+      h = height(c, c2, hypot),
+      rslt = debugTap([c, c2, hypot, aA, oA, h], fn2Str(fn, args))
+    )
+    rslt;
 
 /*
  * (R)ight (,A)ngle (C)athetus + (H)eight
@@ -512,10 +551,41 @@ function raCHeight(c, h) =                                         // ( Cathetus
     assert(is_num(h), "Height is expected to be numeric")          //
     assert(h < c, "Height has to be less than the Cathetus value") //
 
-    let(hypot = cathetus1(c, h),
-        c2 = cathetus(c, hypot),
-        oA = angle2(c, hypot),
-        aA = angle(oA))[c, c2, hypot, aA, oA, h];
+    let(
+      fn = "raCHeight",
+      args = [c, h],
+      hypot = cathetus1(c, h),
+      c2 = cathetus(c, hypot),
+      oA = angle2(c, hypot),
+      aA = angle(oA),
+      rslt = debugTap([c, c2, hypot, aA, oA, h], fn2Str(fn, args))
+    )
+    rslt;
+
+/*
+ * (R)ight (,A)ngle (Hypot)enuse + (A)ngle
+ * calculates the attributes of a right trigangle given
+ * the hypotenuse and one angle of the trigangle
+ *
+ * hypot: hypotenuse
+ * a: angle
+ */
+function raHypotAngle(hypot, a) =
+  assert(!is_undef(hypot), "Hypot is undef")               //
+  assert(!is_undef(a), "Adjacent Angle is undef")              //
+  assert(is_num(hypot), "Hypot is expected to be numeric") //
+  assert(is_num(a), "Adjacent Angle is expected to be numeric") //
+
+  let(
+    fn = "raHypotAngle",
+    args = [hypot,a],
+    c1 = cathetusHypotAngle(hypot, a),
+    c2 = cathetus(c1, hypot),
+    aA = angle(a),
+    h = height(c1, c2, hypot),
+    rslt = debugTap([c1, c2, hypot, aA, a, h], fn2Str(fn, args))
+  )
+  rslt;
 
 /*
  * (R)ight (A)ngle (Hypot)enuse + (H)eight
@@ -532,11 +602,17 @@ function raHypotHeight(hypot, h) =                           // ( Hypotenuse, He
     assert(is_num(h), "Height is expected to be numeric")    //
     assert(h < (hypot / 2), "Height needs to be smaller than half the size of the Hypot") //
 
-    let(v = cathetusAB(hypot, h),
-        c1 = v[constCathetus1],
-        c2 = v[constCathetus2],
-        oA = angle2(c1, hypot),
-        aA = angle2(c2, hypot))[c1, c2, hypot, aA, oA, h];
+    let(
+      fn = "raHypotHeight",
+      args = [hypot, h],
+      v = cathetusAB(hypot, h),
+      c1 = v[constCathetus1],
+      c2 = v[constCathetus2],
+      oA = angle2(c1, hypot),
+      aA = angle2(c2, hypot),
+      rslt = debugTap([c1, c2, hypot, aA, oA, h], fn2Str(fn, args))
+    )
+    rslt;
 /*
  * (R)ight (A)ngle (A)ngle + (H)eight
  * calculates the attributes of a ri,,ght trigangle given
@@ -551,7 +627,13 @@ function raAHeight(a, h) =                                // (Angle, Height)
     assert(is_num(a), "Angle is expected to be numeric")  //
     assert(is_num(h), "Height is expected to be numeric") //
 
-    let(c1 = cathetusAFromHeightAngle(a, h),
-        aA = angle(a),
-        c2 = cathetusBFromHeightAngle(a, h),
-        hypot = hypotPythagorean(c1, c2))[c1, c2, hypot, aA, a, h];
+    let(
+      fn = "raAHeight",
+      args = [a, h],
+      c1 = cathetusAFromHeightAngle(a, h),
+      aA = angle(a),
+      c2 = cathetusBFromHeightAngle(a, h),
+      hypot = hypotPythagorean(c1, c2),
+      rslt = debugTap([c1, c2, hypot, aA, a, h], fn2Str(fn, args))
+    )
+    rslt;

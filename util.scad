@@ -29,9 +29,55 @@ module ruler(length)
 }
 
 /*
- * removeUndefFromVector 
+ * removeUndefFromVector
  * returns a vector with undef elements removed
  *
  *
  */
 function removeUndefFromVector(v) = [for (i = [0:len(v)]) each v[i]];
+
+
+/*
+ * bbox - bounding box
+ *
+ *
+ *
+ */
+module bbox() {
+
+  // a 3D approx. of the children projection on X axis
+  module xProjection()
+      translate([0,1/2,-1/2])
+          linear_extrude(1)
+              hull()
+                  projection()
+                      rotate([90,0,0])
+                          linear_extrude(1)
+                              projection() children();
+
+  // a bounding box with an offset of 1 in all axis
+  module bbx()
+      minkowski() {
+          xProjection() children(); // x axis
+          rotate(-90)               // y axis
+              xProjection() rotate(90) children();
+          rotate([0,-90,0])         // z axis
+              xProjection() rotate([0,90,0]) children();
+      }
+
+  // offset children() (a cube) by -1 in all axis
+  module shrink()
+    intersection() {
+      translate([ 1, 1, 1]) children();
+      translate([-1,-1,-1]) children();
+    }
+
+ shrink() bbx() children();
+}
+
+function fn2Str(name, args=[]) = str(name, parseArgsToString(args));
+
+function parseArgsToString(args, i=0, accum=undef) =
+  i >= len(args) ? str("(", accum, ")") :
+                  let (element = is_undef(args[i]) ? "" : args[i])
+                  parseArgsToString(args, i + 1, is_undef(accum) ? element : str(accum, ", ", element));

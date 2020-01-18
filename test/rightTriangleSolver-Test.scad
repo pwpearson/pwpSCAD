@@ -63,6 +63,8 @@ function _eq(x, y) = ($_debug) ?
 targetVector345 = [ 3, 4, 5, 53.13, 36.87, 2.4 ];
 targetVector435 = [ 4, 3, 5, 36.87, 53.13, 2.4 ];
 
+function assertStr(subject, actual, expected) = str(subject, " - Actual: ", actual, " Expected: ", expected);
+
 /*
  *
  *
@@ -277,8 +279,11 @@ test_raCHeight();
  */
 module test_cathetusAB()
 {
+  echo("**** test_cathetusAB - run");
   legs = cathetusAB(hypot = 5, h = 2.4);
-  echo("test_cathetus, legs: ", legs);
+
+  assert(legs == [3, 4], assertStr("cathetusAB", legs, [3, 4]));
+
 }
 
 test_cathetusAB();
@@ -297,8 +302,10 @@ test_cathetusAB();
  */
 module test_cathetusAFromHeightAngle()
 {
+  echo("**** test_cathetusAFromHeightAngle - run");
   a = cathetusAFromHeightAngle(a = 36.87, h = 2.4);
-  echo("test_cathetusAFromHeightAngle, a: ", a);
+
+  assert(_eq(a, 3), assertStr("cathetusAFromHeightAngle", a, 3));
 }
 
 test_cathetusAFromHeightAngle();
@@ -317,8 +324,10 @@ test_cathetusAFromHeightAngle();
  */
 module test_cathetusBFromHeightAngle()
 {
+  echo("**** test_cathetusBFromHeightAngle - run");
   b = cathetusBFromHeightAngle(a = 36.87, h = 2.4);
-  echo("test_cathetusAFromHeightAngle, b: ", b);
+
+  assert(_eq(b, 4), assertStr("cathetusBFromHeightAngle", b, 4));
 }
 
 test_cathetusBFromHeightAngle();
@@ -392,10 +401,10 @@ module test_rightTriangeSolver()
   assertRightTriangleVectors(rightTriangleSolver(b = 4, c = 5), targetVector435);
   assertRightTriangleVectors(rightTriangleSolver(a = 3, alpha = 36.87), targetVector345);
   assertRightTriangleVectors(rightTriangleSolver(b = 4, alpha = 36.87), targetVector435);
-//  assertRightTriangleVectors(rightTriangleSolver(c = 5, alpha = 36.87), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(c = 5, alpha = 36.87), targetVector345);
   assertRightTriangleVectors(rightTriangleSolver(a = 3, beta = 53.13), targetVector345);
   assertRightTriangleVectors(rightTriangleSolver(b = 4, beta = 53.13), targetVector435);
-//  assertRightTriangleVectors(rightTriangleSolver(c = 5, beta = 53.13), targetVector345);
+  assertRightTriangleVectors(rightTriangleSolver(c = 5, beta = 53.13), targetVector435);
   assertRightTriangleVectors(rightTriangleSolver(a = 3, h = 2.4), targetVector345);
   assertRightTriangleVectors(rightTriangleSolver(b = 4, h = 2.4), targetVector435);
   assertRightTriangleVectors(rightTriangleSolver(c = 5, h = 2.4), targetVector345);
