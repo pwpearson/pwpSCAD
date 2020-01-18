@@ -116,7 +116,7 @@ module assertRightTriangleVectors(sv, tv)
 module test_raCOA_side_a()
 {
   echo("**** test_raCOA_side_a - run");
-  triangle345 = raCOA(c = 3, oA = 36.87);
+  triangle345 = _raCOA(c = 3, oA = 36.87);
 
   debug(str("triangle345 a", triangle345));
 
@@ -140,7 +140,7 @@ test_raCOA_side_a();
 module test_raCOA_side_b()
 {
   echo("**** test_raCOA_side_b - run");
-  triangle345 = raCOA(c = 4, oA = 53.13);
+  triangle345 = _raCOA(c = 4, oA = 53.13);
   debug(str("triangle345 b", triangle345));
 
   assertRightTriangleVectors(triangle345, targetVector435);
@@ -164,7 +164,7 @@ test_raCOA_side_b();
 module test_raCAA()
 {
   echo("**** test_raCAA - run");
-  triangle345 = raCAA(c = 3, aA = 53.13);
+  triangle345 = _raCAA(c = 3, aA = 53.13);
   debug(str("triange345 ", triangle345));
 
   assertRightTriangleVectors(triangle345, targetVector345);
@@ -188,7 +188,7 @@ test_raCAA();
 module test_raCC()
 {
   echo("**** test_raCC - run");
-  triangle345 = raCC(c1 = 3, c2 = 4);
+  triangle345 = _raCC(c1 = 3, c2 = 4);
   debug(str("triangle345 raCC", triangle345));
 
   assertRightTriangleVectors(triangle345, targetVector345);
@@ -211,7 +211,7 @@ test_raCC();
 module test_raCHypot_a()
 {
   echo("**** test_raCHpot_a - run");
-  triangle345 = raCHypot(c = 3, hypot = 5);
+  triangle345 = _raCHypot(c = 3, hypot = 5);
   debug(str("triangle345 a raCHypot", triangle345));
 
   assertRightTriangleVectors(triangle345, targetVector345);
@@ -234,7 +234,7 @@ test_raCHypot_a();
 module test_raCHypot_b()
 {
   echo("**** test_raCHypot_b - run");
-  triangle345 = raCHypot(c = 4, hypot = 5);
+  triangle345 = _raCHypot(c = 4, hypot = 5);
   debug(str("triangle345 b raCHypot", triangle345));
 
   assertRightTriangleVectors(triangle345, targetVector435);
@@ -257,7 +257,7 @@ test_raCHypot_b();
 module test_raCHeight()
 {
   echo("**** test_raCHeight - run");
-  triangle345 = raCHeight(c = 3, h = 2.4);
+  triangle345 = _raCHeight(c = 3, h = 2.4);
   debug(str("triangle345 raCHeight", triangle345));
 
   assertRightTriangleVectors(triangle345, targetVector345);
@@ -280,7 +280,7 @@ test_raCHeight();
 module test_cathetusAB()
 {
   echo("**** test_cathetusAB - run");
-  legs = cathetusAB(hypot = 5, h = 2.4);
+  legs = _cathetusAB(hypot = 5, h = 2.4);
 
   assert(legs == [3, 4], assertStr("cathetusAB", legs, [3, 4]));
 
@@ -303,7 +303,7 @@ test_cathetusAB();
 module test_cathetusAFromHeightAngle()
 {
   echo("**** test_cathetusAFromHeightAngle - run");
-  a = cathetusAFromHeightAngle(a = 36.87, h = 2.4);
+  a = _cathetusAFromHeightAngle(a = 36.87, h = 2.4);
 
   assert(_eq(a, 3), assertStr("cathetusAFromHeightAngle", a, 3));
 }
@@ -325,7 +325,7 @@ test_cathetusAFromHeightAngle();
 module test_cathetusBFromHeightAngle()
 {
   echo("**** test_cathetusBFromHeightAngle - run");
-  b = cathetusBFromHeightAngle(a = 36.87, h = 2.4);
+  b = _cathetusBFromHeightAngle(a = 36.87, h = 2.4);
 
   assert(_eq(b, 4), assertStr("cathetusBFromHeightAngle", b, 4));
 }
@@ -348,7 +348,7 @@ module test_raHypotHeight()
 {
 
   echo("**** test_raHypotHeight - run");
-  triangle345 = raHypotHeight(hypot = 5, h = 2.4);
+  triangle345 = _raHypotHeight(hypot = 5, h = 2.4);
   debug(str("triangle345 raHypotHeight", triangle345));
 
   assertRightTriangleVectors(triangle345, targetVector345);
@@ -372,7 +372,7 @@ module test_raAHeight()
 {
 
   echo("**** test_raAHeight - run");
-  triangle345 = raAHeight(a = 36.87, h = 2.4);
+  triangle345 = _raAHeight(a = 36.87, h = 2.4);
   debug(str("triangle345 raAHeight", triangle345));
 
   assertRightTriangleVectors(triangle345, targetVector345);
