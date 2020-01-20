@@ -2,9 +2,21 @@
  *
  *
  */
+
+
 include <MCAD/materials.scad>
 include <pwpSCAD/rightTriangleSolver.scad>
 use <pwpSCAD/util.scad>
+
+DOC_SCALING_FACTOR = 10;
+
+include <Dimensional-Drawings/dimlines.scad>
+
+DIM_LINE_WIDTH = .025 * DOC_SCALING_FACTOR;
+DIM_SPACE = .1 * DOC_SCALING_FACTOR;
+DIM_LINE_PAD = .5;
+
+$_debug = true;
 
 // Vector object dimension elements
 // [depth, width, (height|length), angle]
@@ -19,7 +31,7 @@ OFF_SET = 4;
 eightFeet = 8 * 12;
 fourFeet = 4 * 12;
 
-_epsilon_diff = 1e-004;
+_epsilon = 1e-009;
 
 /*
 reference
@@ -85,28 +97,37 @@ width4x4 = fourByFour[WIDTH];
 /******************************************************************************/
 
 // rightTriangleSolver(a = undef, b = undef, c = undef, alpha = undef, beta = undef, h = undef)
-module inverseLap(lapWidth, lapLength, lapThickness, shoulderAngle) {
+module _inverseLap(lapWidth, lapLength, lapThickness, shoulderAngle=0, dimPadding=0) {
+  debug(str("init: inverseLapWithAngle(",[lapWidth, lapLength, lapThickness, shoulderAngle], ")"));
 
   tangle = rightTriangleSolver(a = lapWidth, beta = shoulderAngle);
-  echo(tangle);
-  a = tangle[0];
-  b = tangle[1];
+  debug(str("tangle: ", tangle));
+  b = is_def(tangle) ? tangle[1] : 0;
 
-  // polygon points of inverse lap
-  origin = [0 - _epsilon_diff, 0 - _epsilon_diff];
-  topLeftPos = [0 - _epsilon_diff, lapLength + _epsilon_diff];
-  topRightPos = [lapWidth + _epsilon_diff, lapLength - b + _epsilon_diff];
-  topLeftNeg = [0 - _epsilon_diff, lapLength - b + _epsilon_diff];
-  topRightNeg = [lapWidth + _epsilon_diff, lapLength + _epsilon_diff];
-  bottomRight = [lapWidth + _epsilon_diff , 0 - _epsilon_diff];
+  assert( b < lapLength, "lap length not long enough for the desired angle");
 
-  points = shoulderAngle > 0 ?
-    [origin, topLeftPos, topRightPos, bottomRight] :
-    [origin, topLeftNeg, topRightNeg, bottomRight];
+  // used to add buffer around polygon to eliminate artifacts
+  epsilon = 1e-003;
 
-  echo(points);
+  // 2d-polygon points of inverse lap
+  origin = [0, 0] + [-epsilon, -epsilon];
 
-  mvrot(z = -_epsilon_diff)
+  bottomRight = [lapWidth, 0] + [epsilon, -epsilon];
+
+  topLeft = shoulderAngle >= 0 ?
+    [0, lapLength] + [-epsilon, epsilon] :    //shoulderAngle is 0 or positive
+    [0, lapLength - b] + [-epsilon, epsilon]; //shoulderAngle is negative
+
+  topRight = shoulderAngle > 0 ?
+    [lapWidth, lapLength - b] + [epsilon, epsilon] : //shoulderAngle is postive
+    [lapWidth, lapLength] + [epsilon, epsilon];      //shoulderAngle is 0 or negative
+
+  points = [origin, topLeft, topRight, bottomRight];
+
+  debug(str("inverseLapWithAngle Points: ", points));
+
+  color(Oak)
+  mvrot(z = -epsilon)
   linear_extrude(height = lapThickness)
     polygon( points = points, convexity = 1);
 }
@@ -115,19 +136,64 @@ front = 0;
 back = 1;
 top = 0;
 bottom = 1;
+left = 0;
+right = 1;
 
-module boardWithLap(width, length, thickness, lapWidth, lapLength, lapThickness, shoulderAngle, location){
+module boardWithLap(width, length, thickness, lapWidth, lapLength, lapThickness, shoulderAngle=0, location, dimPadding=0){
+  assert(abs(shoulderAngle) < 90, "shoulder angle of the lap has to be less than 90");
 
   // currently coded for Facing: Front-Top
   difference() {
-    board(width, length, thickness);
+    board(width, length, thickness, dimPadding * 1.5);
     mvrot(y = length, z = thickness, rx = 180)
-    # inverseLap(lapWidth, lapLength, lapThickness, shoulderAngle);
+      _inverseLap(lapWidth, lapLength, lapThickness, shoulderAngle, dimPadding);
   }
 }
 
-module board(width, length, thickness){
+function lapJoint(width, length, thickness, shoulderAngle=0, location) =
+  ["lap-joint", [width, length, thickness, shoulderAngle, location]];
+
+module board(width, length, thickness, dimPadding=0){
   color(Pine) cube([width, length, thickness]);
+
+  if(dimPadding > 0){
+    // length
+    mvrot(x=-DIM_LINE_PAD, y=0, z=width/2, rz=180)
+    line(length=dimPadding * .90, width=DIM_LINE_WIDTH, height=DIM_HEIGHT,
+    left_arrow=false, right_arrow=false);
+
+    mvrot(x=-DIM_LINE_PAD, y=length, z=width/2, rz=180)
+    line(length=dimPadding *.90, width=DIM_LINE_WIDTH, height=DIM_HEIGHT,
+    left_arrow=false, right_arrow=false);
+
+    mvrot(x=-dimPadding * .80, y=0, z=width/2, rz=90)
+    dimensions(length, line_width=DIM_LINE_WIDTH, loc=DIM_CENTER);
+
+    //width
+    mvrot(x=0, y=0, z=thickness + DIM_LINE_PAD, ry=-90)
+    line(length=dimPadding * .90, width=DIM_LINE_WIDTH, height=DIM_HEIGHT,
+    left_arrow=false, right_arrow=false);
+
+    mvrot(x=width, y=0, z=thickness + DIM_LINE_PAD, ry=-90)
+    line(length=dimPadding *.90, width=DIM_LINE_WIDTH, height=DIM_HEIGHT,
+    left_arrow=false, right_arrow=false);
+
+    mvrot(x=0, y=0, z=thickness + dimPadding * .80, rx=-90)
+    dimensions(width, line_width=DIM_LINE_WIDTH, loc=DIM_LEFT);
+
+    //thickness
+    mvrot(x=width + DIM_LINE_PAD, y=0, z=0, ry=0)
+    line(length=dimPadding * .90, width=DIM_LINE_WIDTH, height=DIM_HEIGHT,
+    left_arrow=false, right_arrow=false);
+
+    mvrot(x=width + DIM_LINE_PAD, y=0, z=thickness, ry=0)
+    line(length=dimPadding *.90, width=DIM_LINE_WIDTH, height=DIM_HEIGHT,
+    left_arrow=false, right_arrow=false);
+
+    mvrot(x=width + dimPadding * .80, y=0, z=thickness, rx=-90, ry=90)
+    dimensions(width, line_width=DIM_LINE_WIDTH, loc=DIM_LEFT);
+
+  }
 }
 
 module lumber(dimension = twoByFour, length = eightFeet, trueCenter = false) {

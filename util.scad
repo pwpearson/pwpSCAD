@@ -84,3 +84,5 @@ function parseArgsToString(args, i=0, accum=undef) =
 
 echo(fn2Str("test", [1,2,3]));
 echo(fn2Str("test2", [1,2,3], 6));
+
+function is_def(a) = !is_undef(a);

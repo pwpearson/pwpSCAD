@@ -118,15 +118,23 @@ errtInvalidNumberOfArguments = "rightTriangleSolver expects only two arguments t
  *
  */
 function rightTriangleSolver(a = undef, b = undef, c = undef, alpha = undef, beta = undef, h = undef) =
-    let(
-      argVector = [ a, b, c, alpha, beta, h ],
-      args = removeUndefFromVector(argVector),
-      index = _calcFuncIndexFromArgs(argVector),
-      argCount = len(args),
-      result = argCount == 2 ? _callFunction(index, args[0], args[1]) : undef
-    )
-    argCount < 2 || argCount < 2 ? invalidArgumentError(args[0], args[1], errInvalidNumberOfArguments) :
-    result;
+    (is_def(alpha) && alpha == 0) || (is_def(beta) && beta == 0) ? undef :
+      let(
+        fn = "rightTriangleSolver",
+        argVector = [ a, b, c, alpha, beta, h ],
+        args = removeUndefFromVector(argVector),
+        index = _calcFuncIndexFromArgs(argVector),
+        argCount = len(args),
+        argCount_Check = argCount == 2,
+        alpha_Check = debugTap((is_undef(alpha) || (!is_undef(alpha) && (abs(alpha) < 90))), "alpha_Check"),
+        beta_Check = debugTap((is_undef(beta) || (!is_undef(beta) && (abs(beta) < 90))), "beta_Check"),
+        result = debugTap(argCount_Check ? _callFunction(index, args[0], args[1]) : undef, fn2Str(fn, argVector))
+      )
+      argCount_Check && alpha_Check && beta_Check ? result :
+      !argCount_Check ? _invalidNumberOfArgumentsError(args) :
+      !alpha_Check ? _invalidAngleArgumentError(alphe) :
+      !beta_Check ? _invalidAngleArgumentError(beta) :
+      invalidArgumentError(args[0], args[1], errInvalidNumberOfArguments);
 
 /*
  * callFunction
@@ -199,16 +207,21 @@ function _calcFuncIndexFromArgs(v) =
  * echoes error to console and returns undef
  *
  */
-function _invalidArgumentError(arg1, arg2, s) =
-    echo(str("Invalid argument arg1: ", arg1, " arg2: ", arg2, " Msg: ", s)) undef;
+function _invalidArgumentError(arg1, arg2, s = "") =
+  echo(str("Invalid argument arg1: ", arg1, " arg2: ", arg2, " Msg: ", s)) undef;
 
+function _invalidNumberOfArgumentsError(args, s = "") =
+  echo(str("Invalid number of arguments: Expected 2 and received: ", len(args), " (", args, "). ", s)) undef;
+
+function _invalidAngleArgumentError(angleArg, s = "") =
+  echo(str("Invalid angle argument: Expected angle to be > 0 and < 90; received: ", angleArg, ". ", s)) undef;
 /*
  * undefinedFunctionError
  * echoes error to console and returns undef
  *
  */
 function _undefinedFunctionError(arg1, arg2, s) =
-    echo(str("No function defined for arg1 ", arg1, " arg2: ", arg2, " Msg: ", s)) undef;
+  echo(str("No function defined for arg1 ", arg1, " arg2: ", arg2, " Msg: ", s)) undef;
 
 /*****************************************************************************************/
 // primitive functions
@@ -471,12 +484,13 @@ function _raCAA(c, aA) =                                             //(a, Beta)
     assert(!is_undef(c), "Cathetus is undef")                       //
     assert(!is_undef(aA), "Adjacent Angle is undef")              //
     assert(is_num(c), "Cathetus is expected to be numeric")         //
-    assert(is_num(aA), "Adjacent Angle is expected to be numeric") //
-    assert(aA < 90, "Adjacent Angle must be less than 90°")         //
+    assert(is_num(aA), "Adjacent Angle is expected to be numeric")      //
+    assert(abs(aA) < 90, "Adjacent Angle must be less than 90°")         //
+    assert(abs(aA) > 0, "Adjancent Angle must be greater than 0°")
 
     let(
       fn = "raCAA",
-      args = [c, aA],
+      args = debugTap([c, aA], fn2Str(fn, [c, aA])),
       hypot = _hypot2(c, aA),
       c2 = _cathetus(c, hypot),
       oA = _angle(aA),
@@ -501,7 +515,7 @@ function _raCC(c1, c2) =                                      // ( both Cathetus
 
     let(
       fn = "raCC",
-      args = [c1, c2],
+      args = debugTap([c1, c2], fn2Str(fn, [c1, c2])),
       hypot = _hypotPythagorean(c1, c2),
       oA = _angle2(c1, hypot),
       aA = _angle2(c2, hypot),
