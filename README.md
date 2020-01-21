@@ -1,5 +1,3 @@
-[TOC]
-
 ## pwpSCAD library
 
 ### Right Triangle Solver
@@ -18,8 +16,8 @@ args:
            a: Cathetus
            b: Other Cathetus
            c: hypotenuse
-   alpha (⍺): angle opposite of Cathetus a; angle adjacent of Cathetus b
-    beta (𝜷): angle adjacent of Cathetus a; angle opposite of Cathetus b
+   alpha (⍺): angle opposite of Cathetus a; angle adjacent of Cathetus b
+    beta (𝜷): angle adjacent of Cathetus a; angle opposite of Cathetus b
            h: height of triangle
 ```
 
@@ -36,13 +34,13 @@ This function will also return undef for invalid combinations or argument pairs.
 ##### Sample Solution
 ```
 ex:
-            ⍺ = 53.13 +
+            ⍺ = 53.13 +
                       ++
                       + +
                   a=3 +  + c=5
                       +   +
                       ++   +
-                      +++++++ 𝜷 = 36.87
+                      +++++++ 𝜷 = 36.87
                         b=4
                   h=2.4
                   
