@@ -137,65 +137,86 @@ module _inverseLap(points, lapThickness) {
  bottomBack = 6;
  bottomRight = 7;
 
-module boardWithLap(width, length, thickness, lapWidth, lapLength, lapThickness, shoulderAngle=0, location=0, dimPadding=0){
+module boardWithLap(width, length, thickness, lapWidth=undef, lapLength=undef, lapThickness=undef, shoulderAngle=0, facing=topFront, dimPadding=0){
   assert(abs(shoulderAngle) < 90, "shoulder angle of the lap has to be less than 90°");
 
-  epsilon = 1e-01;
+  /*
+  is_undef(lapWidth) ? width : lapWidth;
+  is_undef(lapLength) ? width : lapLength;
+  is_undef(lapThickness) ? thickness/2 : lapThickness
+  */
+
+  epsilon = 1e-001;
   points = _inverseLapPoints(lapWidth, lapLength, lapThickness, shoulderAngle);
 
-  bottomLeft = 0;
-  topLeft = 1;
-  topRight = 2;
-  bottomRight = 3;
+  bottomLeftPt = 0;
+  topLeftPt = 1;
+  topRightPt = 2;
+  bottomRightPt = 3;
 
-  tranTopFront = [[0, length, thickness], [0, 180, 180]];
-  tranBottomFront = [[width, 0, thickness], [0, 180, 0]];
+  facingTrans =
+    facing == topFront    ? [[0, length, thickness], [0, 180, 180]] :
+    facing == topLeft     ? [[0, length, 0], [0, -90, 180]] :
+    facing == topBack     ? [[width, length, 0], [0, 0, 180]] :
+    facing == topRight    ? [[width, length, thickness], [0, 90, 180]] :
+    facing == bottomFront ? [[width, 0, thickness], [0, 180, 0]] :
+    facing == bottomLeft  ? [[0, 0, thickness], [0, 90, 0]] :
+    facing == bottomBack  ? [[0, 0, 0], [0, 0, 0]] :
+    facing == bottomRight ? [[width, 0, 0], [0, -90, 0]] :
+    assert(false, str("Facing Transform not found for value: ", facing)) undef;
 
-  trans = location == topFront ? tranTopFront :
-          location == bottomFront ? tranBottomFront :
-          undef;
+  debug(str("facing: ", facing, " translation: ", facingTrans));
 
   // currently coded for Facing: Front-Top
   difference() {
     board(width, length, thickness, dimPadding * 2);
-      translate(trans[0]) rotate(trans[1])
+      translate(facingTrans[0]) rotate(facingTrans[1])
         _inverseLap(points, lapThickness);
   }
 
   if(dimPadding > 0) {
-    lenLeftSide = norm(points[topLeft] - points[bottomLeft]);
-    lenRightSide = norm(points[topRight] - points[bottomRight]);
+    lenLeftSide = norm(points[topLeftPt] - points[bottomLeftPt]);
+    lenRightSide = norm(points[topRightPt] - points[bottomRightPt]);
     color("green")
-    translate(trans[0]) rotate(trans[1]){
+    translate(facingTrans[0]) rotate(facingTrans[1]){
       //left height
-      mvrot(x=points[bottomLeft][0] - dimPadding - .2 , y=points[bottomLeft][1], z=lapThickness)
-      //mvrot(x=-3)
+      mvrot(x=points[bottomLeftPt][0] - dimPadding - .2 , y=points[bottomLeftPt][1], z=lapThickness)
       line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
 
-      mvrot(x=points[topLeft][0] - dimPadding - .2 , y=points[topLeft][1], z=lapThickness)
-      //mvrot(x=-3, y=points[topLeft][1])
+      mvrot(x=points[topLeftPt][0] - dimPadding - .2 , y=points[topLeftPt][1], z=lapThickness)
       line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
 
       mvrot(x=-dimPadding * .8, y=lenLeftSide, z=lapThickness, rx=180, rz=-90)
       dimensions(lenLeftSide, line_width=DIM_LINE_WIDTH, loc=DIM_LEFT);
 
       //right height
-      //mvrot(x=lapWidth + .2, y=points[bottomRight][1])
       mvrot(x=3, z=lapThickness)
       line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
 
-      //mvrot(x=lapWidth + .2, y=points[topRight][1])
-      mvrot(x=3, y=points[topRight][1], z=lapThickness)
+      mvrot(x=3, y=points[topRightPt][1], z=lapThickness)
       line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
 
       mvrot(x=dimPadding + lapWidth * .8, y=lenRightSide, z=lapThickness, rx=180, rz=-90)
       dimensions(lenRightSide, line_width=DIM_LINE_WIDTH, loc=DIM_LEFT);
 
       //angle
-      //°mvrot(x=width/2, y=lapLength, z=-2, rx=180, rz=-90)
-      mvrot(y=lenLeftSide, z= lapThickness, rx=190)
-      leader_line(angle=85, radius=0, angle_length=lapLength, horz_line_length=0, direction=DIM_RIGHT,
-      line_width=DIM_LINE_WIDTH, text=str(shoulderAngle, "deg"), do_circle=false);
+      mvrot(
+        x=sign(shoulderAngle) >=0 ? 0 : lapWidth,
+        y=max(lenLeftSide, lenRightSide),
+        z= lapThickness,
+        rx=190
+      )
+
+      leader_line(
+        angle=sign(shoulderAngle) >=0 ? 80 : 100,
+        radius=0,
+        angle_length=lapLength+1,
+        horz_line_length=0,
+        direction=DIM_RIGHT,
+        line_width=DIM_LINE_WIDTH,
+        text=str(shoulderAngle, "deg"),
+        do_circle=false
+      );
 
     }
   }
