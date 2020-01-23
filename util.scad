@@ -36,6 +36,14 @@ module ruler(length)
  */
 function removeUndefFromVector(v) = [for (i = [0:len(v)]) each v[i]];
 
+/*
+ * take - take the first n number of elements from list or vector
+ *
+ *
+ *
+ */
+function take(v, n) = n <= len(v) ? [for (i = [0:n-1]) v[i]] : v;
+
 
 /*
  * bbox - bounding box

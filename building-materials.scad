@@ -5,6 +5,7 @@
 
 
 include <MCAD/materials.scad>
+include <missile/missile.scad>
 include <pwpSCAD/rightTriangleSolver.scad>
 use <pwpSCAD/util.scad>
 
@@ -18,14 +19,86 @@ DIM_LINE_PAD = .5;
 
 $_debug = true;
 
-// Vector object dimension elements
-// [depth, width, (height|length), angle]
-DEPTH = 0;
-WIDTH = 1;
-HEIGHT = 2;
-LENGTH = 2;
+/*
+ * newly created objects prior to translations
+ * have default board() facing of
+ * from origin (0,0,0)
+ * +x axis == width
+ * +y axis == length
+ * +z axis == depth
+ */
+ TOP_FRONT = 0;     //[0, 1, 1]                z |
+ TOP_LEFT = 1;      //[-1, 1, 0]                 |   * y
+ TOP_BACK = 2;      //[0, 1, -1]                 |  *
+ TOP_RIGHT = 3;     //[1, 1, 0]                  | *
+ BOTTOM_FRONT = 4;  //[0, -1, 1]                 |_________ x
+ BOTTOM_LEFT = 5;   //[-1, -1, 0]
+ BOTTOM_BACK = 6;   //[0, -1, -1]
+ BOTTOM_RIGHT = 7;  //[1, -1, 0]
+
+/*
+ * Vector object dimension elements
+ * board = [ width, length, thickness]
+ * lap joint = [depth, width, (height|length), angle, facing]
+ */
+WIDTH = 0;
+HEIGHT = 1;
+LENGTH = 1;
+DEPTH = 2;
+THICKNESS = 2;
 ANGLE = 3;
-OFF_SET = 4;
+FACING = 4;
+
+// LAP_JOINT points
+BOTTOM_LEFT_POINT = 0;
+TOP_LEFT_POINT = 1;
+TOP_RIGHT_POINT = 2;
+BOTTOM_RIGHT_POINT = 3;
+EXTRUDE_DEPTH = 4;
+
+// joinery operations
+LAP_JOINT = 0; // maybe do specializations instead of different operations
+CROSS_LAP = 1; // form of LAP JOINT
+MITER = 2; // another form of LAP JOINT
+MORTIS = 3;
+TENON = 4;
+MITRED_HALF = 5; // form of LAP JOINT
+DOVETAIL_LAP = 6; // form of LAP JOINT
+RABBET = 7;
+GROOVE = 8; // with-grain; similiar to TRENCH (dado); [Through and Blind]
+TRENCH = 9; // cross-grain; similiar to GROOVE; [Through and Blind]
+HEAL_CUT = 10; // angled cut out in material
+
+/*
+ * from wikipedia.org - woodworking joints
+ *
+ * LAP JOINT the end of a piece of wood is laid over and connected to another piece of wood
+ *
+ * CROSS LAP form of LAP JOINT
+ *
+ * MITER is similar to a butt joint, but both pieces have been bevelled
+ *
+ * MORTIS and TENON A stub (the tenon) will fit tightly into a hole cut for it (the mortise)
+ *
+ * MITRED HALF form of LAP JOINT
+ *
+ * DOVETAIL LAP form of LAP JOINT
+ *
+ * RABBET is a recess or groove cut into the edge
+ *
+ * THROUGH GROOVE passes all the way through the surface and its ends are open
+ *
+ * STOPPED GROOVE one or both of the ends finish before the groove meets edge of the surface
+ *
+ * THROUGH TRENCH/DADO involves cuts which run between both edges of the surface, leaving both ends open
+ *
+ * STOPPED or BLIND TRENCH/DADO ends before one or both of the cuts meets the edge of the surface
+ *
+ * HALF TRENCH/DADO is formed with a narrow dado cut into one part, coupled with a
+ * rabbet of another piece. This joint tends to be used because of its ability
+ * to hide unattractive gaps due to varying material thicknesses
+ */
+
 
 // all values are in inches;
 eightFeet = 8 * 12;
@@ -96,7 +169,11 @@ width4x4 = fourByFour[WIDTH];
 
 /******************************************************************************/
 
-
+/*
+ * defines the 2d polygon for the inverse of the lap joint. Basically the part to remove.
+ *
+ * uses the rightTriangleSover to calculate the vertices from the shoulder angle
+ */
 function _inverseLapPoints(lapWidth, lapLength, lapThickness, shoulderAngle) =
   let(
     fn = "_inverseLapPoints",
@@ -104,17 +181,37 @@ function _inverseLapPoints(lapWidth, lapLength, lapThickness, shoulderAngle) =
     tangle = debugTap(rightTriangleSolver(a = lapWidth, beta = shoulderAngle), "tangle: "),
     b = is_def(tangle) ? tangle[1] :0,
 
-    bottomLeft = [0,0],
-    topLeft = shoulderAngle >= 0 ? [0, lapLength] : [0, lapLength - b],
-    topRight = shoulderAngle > 0 ? [lapWidth, lapLength - b] : [lapWidth, lapLength],
-    bottomRight = [lapWidth, 0],
+    BOTTOM_LEFT = [0,0],
+    TOP_LEFT = shoulderAngle >= 0 ? [0, lapLength] : [0, lapLength - b],
+    TOP_RIGHT = shoulderAngle > 0 ? [lapWidth, lapLength - b] : [lapWidth, lapLength],
+    BOTTOM_RIGHT = [lapWidth, 0],
 
-    rslt = debugTap([bottomLeft, topLeft, topRight, bottomRight], fn2Str(fn, args))
+    pts = debugTap([BOTTOM_LEFT, TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, lapThickness], fn2Str(fn, args))
   )
   assert( b < lapLength, "lap length not long enough for the desired angle")
-  rslt;
+  pts;
 
-module _inverseLap(points, lapThickness) {
+/*
+ * returns the transformation required to place the inverseLap.
+ *
+ * note: this may not be just for inverse lap joints
+ */
+function _inverseLapTransformations(facing, width, length, thickness) =
+  facing == TOP_FRONT    ? [[0, length, thickness], [0, 180, 180]] :
+  facing == TOP_LEFT     ? [[0, length, 0], [0, -90, 180]] :
+  facing == TOP_BACK     ? [[width, length, 0], [0, 0, 180]] :
+  facing == TOP_RIGHT    ? [[width, length, thickness], [0, 90, 180]] :
+  facing == BOTTOM_FRONT ? [[width, 0, thickness], [0, 180, 0]] :
+  facing == BOTTOM_LEFT  ? [[0, 0, thickness], [0, 90, 0]] :
+  facing == BOTTOM_BACK  ? [[0, 0, 0], [0, 0, 0]] :
+  facing == BOTTOM_RIGHT ? [[width, 0, 0], [0, -90, 0]] :
+  assert(false, str("Facing Transform not found for value: ", facing)) undef;
+
+/*
+ * defines the 3d object based off the 2d polygon points
+ *
+ */
+module _inverseLap(points) {
   debug(str("init: inverseLap(", points, ")"));
   epsilon = 1e-002;
 
@@ -124,107 +221,127 @@ module _inverseLap(points, lapThickness) {
 
   color(Oak)
   mvrot(z = -epsilon)
-  linear_extrude(height = lapThickness)
-    polygon( points = points + epsilonAdjust, convexity = 1);
+  linear_EXTRUDE_DEPTH(height = points[EXTRUDE_DEPTH])
+    polygon( points = take(points, 4) + epsilonAdjust, convexity = 1);
 }
 
- topFront = 0;
- topLeft = 1;
- topBack = 2;
- topRight = 3;
- bottomFront = 4;
- bottomLeft = 5;
- bottomBack = 6;
- bottomRight = 7;
+/*
+ * width, length, thickness = board dimensions
+ * op = [operation, [arg1, arg2, ..., argn]]
+ */
+module joinery(width, length, thickness, ops, dimPadding=0){
+  if(!empty(ops))
+    difference(){
+      joinery(width, length, thickness, tail(ops), dimPadding);
+        // apply current operation
+        op = head(ops);
+        type = op[0];
+        args = op[1];
+        if(type == LAP_JOINT){
 
-module boardWithLap(width, length, thickness, lapWidth=undef, lapLength=undef, lapThickness=undef, shoulderAngle=0, facing=topFront, dimPadding=0){
+          lapWidth = args[WIDTH];
+          lapLength = args[LENGTH];
+          lapThickness = args[THICKNESS];
+          shoulderAngle = args[ANGLE];
+          facing = args[FACING];
+
+          assert(abs(shoulderAngle) < 90, "shoulder angle of the lap has to be less than 90°");
+
+          points = _inverseLapPoints(lapWidth, lapLength, lapThickness, shoulderAngle);
+          facingTrans = _inverseLapTransformations(facing, width, length, thickness);
+
+          translate(facingTrans[0]) rotate(facingTrans[1])
+            _inverseLap(points);
+        }
+    }
+  else
+    board(width, length, thickness, dimPadding);
+}
+
+/*
+ *
+ *
+ */
+module boardWithLap(width, length, thickness, lapWidth=undef, lapLength=undef, lapThickness=undef, shoulderAngle=0, facing=TOP_FRONT, dimPadding=0){
   assert(abs(shoulderAngle) < 90, "shoulder angle of the lap has to be less than 90°");
 
-  /*
-  is_undef(lapWidth) ? width : lapWidth;
-  is_undef(lapLength) ? width : lapLength;
-  is_undef(lapThickness) ? thickness/2 : lapThickness
-  */
+  echo(str("lapWidth: ", lapWidth, " lapLength: ", lapLength, " lapThickness: ", lapThickness));
 
-  epsilon = 1e-001;
+  lapWidth = is_undef(lapWidth) ? width : lapWidth;
+  lapLength = is_undef(lapLength) ? width : lapLength;
+  lapThickness = is_undef(lapThickness) ? thickness/2 : lapThickness;
+
   points = _inverseLapPoints(lapWidth, lapLength, lapThickness, shoulderAngle);
+  facingTrans = _inverseLapTransformations(facing, width, length, thickness);
 
-  bottomLeftPt = 0;
-  topLeftPt = 1;
-  topRightPt = 2;
-  bottomRightPt = 3;
-
-  facingTrans =
-    facing == topFront    ? [[0, length, thickness], [0, 180, 180]] :
-    facing == topLeft     ? [[0, length, 0], [0, -90, 180]] :
-    facing == topBack     ? [[width, length, 0], [0, 0, 180]] :
-    facing == topRight    ? [[width, length, thickness], [0, 90, 180]] :
-    facing == bottomFront ? [[width, 0, thickness], [0, 180, 0]] :
-    facing == bottomLeft  ? [[0, 0, thickness], [0, 90, 0]] :
-    facing == bottomBack  ? [[0, 0, 0], [0, 0, 0]] :
-    facing == bottomRight ? [[width, 0, 0], [0, -90, 0]] :
-    assert(false, str("Facing Transform not found for value: ", facing)) undef;
-
-  debug(str("facing: ", facing, " translation: ", facingTrans));
-
-  // currently coded for Facing: Front-Top
   difference() {
     board(width, length, thickness, dimPadding * 2);
       translate(facingTrans[0]) rotate(facingTrans[1])
         _inverseLap(points, lapThickness);
   }
 
-  if(dimPadding > 0) {
-    lenLeftSide = norm(points[topLeftPt] - points[bottomLeftPt]);
-    lenRightSide = norm(points[topRightPt] - points[bottomRightPt]);
-    color("green")
-    translate(facingTrans[0]) rotate(facingTrans[1]){
-      //left height
-      mvrot(x=points[bottomLeftPt][0] - dimPadding - .2 , y=points[bottomLeftPt][1], z=lapThickness)
-      line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
+  if(dimPadding > 0)
+    _LAP_JOINTDimensions(facingTrans, points, dimPadding, lapWidth, lapLength, lapThickness, shoulderAngle);
+}
 
-      mvrot(x=points[topLeftPt][0] - dimPadding - .2 , y=points[topLeftPt][1], z=lapThickness)
-      line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
+/*
+ *
+ *
+ */
+module _LAP_JOINTDimensions(facingTrans, points, dimPadding, lapWidth, lapLength, lapThickness, shoulderAngle){
+// dimension lines for the lap joint; have to be done after the difference()
+  lenLeftSide = norm(points[TOP_LEFT_POINT] - points[BOTTOM_LEFT_POINT]);
+  lenRightSide = norm(points[TOP_RIGHT_POINT] - points[BOTTOM_RIGHT_POINT]);
+  color("green")
+  translate(facingTrans[0]) rotate(facingTrans[1]){
+    //left height
+    mvrot(x=points[BOTTOM_LEFT_POINT][0] - dimPadding - .2 , y=points[BOTTOM_LEFT_POINT][1], z=lapThickness)
+    line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
 
-      mvrot(x=-dimPadding * .8, y=lenLeftSide, z=lapThickness, rx=180, rz=-90)
-      dimensions(lenLeftSide, line_width=DIM_LINE_WIDTH, loc=DIM_LEFT);
+    mvrot(x=points[TOP_LEFT_POINT][0] - dimPadding - .2 , y=points[TOP_LEFT_POINT][1], z=lapThickness)
+    line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
 
-      //right height
-      mvrot(x=3, z=lapThickness)
-      line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
+    mvrot(x=-dimPadding * .8, y=lenLeftSide, z=lapThickness, rx=180, rz=-90)
+    dimensions(lenLeftSide, line_width=DIM_LINE_WIDTH, loc=DIM_LEFT);
 
-      mvrot(x=3, y=points[topRightPt][1], z=lapThickness)
-      line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
+    //right height
+    mvrot(x=3, z=lapThickness)
+    line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
 
-      mvrot(x=dimPadding + lapWidth * .8, y=lenRightSide, z=lapThickness, rx=180, rz=-90)
-      dimensions(lenRightSide, line_width=DIM_LINE_WIDTH, loc=DIM_LEFT);
+    mvrot(x=3, y=points[TOP_RIGHT_POINT][1], z=lapThickness)
+    line(length=dimPadding, width=DIM_LINE_WIDTH, height=DIM_HEIGHT, left_arrow=false, right_arrow=false);
 
-      //angle
-      mvrot(
-        x=sign(shoulderAngle) >=0 ? 0 : lapWidth,
-        y=max(lenLeftSide, lenRightSide),
-        z= lapThickness,
-        rx=190
-      )
+    mvrot(x=dimPadding + lapWidth * .8, y=lenRightSide, z=lapThickness, rx=180, rz=-90)
+    dimensions(lenRightSide, line_width=DIM_LINE_WIDTH, loc=DIM_LEFT);
 
-      leader_line(
-        angle=sign(shoulderAngle) >=0 ? 80 : 100,
-        radius=0,
-        angle_length=lapLength+1,
-        horz_line_length=0,
-        direction=DIM_RIGHT,
-        line_width=DIM_LINE_WIDTH,
-        text=str(shoulderAngle, "deg"),
-        do_circle=false
-      );
+    //angle
+    mvrot(
+      x=sign(shoulderAngle) >=0 ? 0 : lapWidth,
+      y=max(lenLeftSide, lenRightSide),
+      z= lapThickness,
+      rx=190
+    )
 
-    }
+    leader_line(
+      angle=sign(shoulderAngle) >=0 ? 80 : 100,
+      radius=0,
+      angle_length=lapLength+1,
+      horz_line_length=0,
+      direction=DIM_RIGHT,
+      line_width=DIM_LINE_WIDTH,
+      text=str(shoulderAngle, "deg"),
+      do_circle=false
+    );
   }
 }
 
+/*
+ * defines a board which is the basis for all this files operations
+ */
 module board(width, length, thickness, dimPadding=0){
   color(Pine) cube([width, length, thickness]);
 
+  // dimension lines for the board
   color("blue")
   if(dimPadding > 0){
     // length
@@ -266,41 +383,40 @@ module board(width, length, thickness, dimPadding=0){
   }
 }
 
-module lumber(dimension = twoByFour, length = eightFeet, trueCenter = false) {
-  board(dimension[WIDTH], length, dimension[DEPTH]);
+module lumber(dimension = twoByFour, length = eightFeet) {
+  board(dimension[WIDTH], length, dimension[THICKNESS]);
 }
 
-module oneByFour(length = eightFeet, trueCenter = false) {
-  lumber(oneByFour, length, trueCenter);
+module oneByFour(length = eightFeet) {
+  lumber(oneByFour, length);
 }
 
-module oneBySix(length = eightFeet, trueCenter = false) {
-  lumber(oneBySix, length, trueCenter);
+module oneBySix(length = eightFeet) {
+  lumber(oneBySix, length);
 }
 
-module twoByTwo(length = eightFeet, trueCenter = false) {
-  lumber(twoByTwo, length, trueCenter);
+module twoByTwo(length = eightFeet) {
+  lumber(twoByTwo, length);
 }
 
-module twoByFour(length = eightFeet, trueCenter = false) {
-  lumber(twoByFour, length, trueCenter);
+module twoByFour(length = eightFeet) {
+  lumber(twoByFour, length);
 }
 
-module twoBySix(length = eightFeet, trueCenter = false) {
-  lumber(twoBySix, length, trueCenter);
+module twoBySix(length = eightFeet) {
+  lumber(twoBySix, length);
 }
 
-module twoByTen(length = eightFeet, trueCenter = false) {
-  lumber(twoByTen, length, trueCenter);
+module twoByTen(length = eightFeet) {
+  lumber(twoByTen, length);
 }
 
-module fourByFour(length = eightFeet, trueCenter = false) {
-  lumber(fourByFour, length, trueCenter);
+module fourByFour(length = eightFeet) {
+  lumber(fourByFour, length);
 }
 
-module mdfSheet(length = eightFeet, width = fourFeet, thickness = 0.5,
-                trueCenter = false) {
-  color(FiberBoard) cube([ thickness, width, length ], trueCenter);
+module mdfSheet(length = eightFeet, width = fourFeet, thickness = 0.5) {
+  color(FiberBoard) cube([ thickness, width, length ]);
 }
 
 /*
