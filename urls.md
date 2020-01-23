@@ -1,0 +1,17 @@
+https://en.wikipedia.org/wiki/Bridle_joint#/media/File:Joinery-CornerBriddleJoint.svg
+https://en.wikipedia.org/wiki/Bridle_joint#/media/File:Joinery-T-BriddleJoint.svg
+https://en.wikipedia.org/wiki/Woodworking_joints#/media/File:Woodworking_lap_joints.svg
+https://en.wikipedia.org/wiki/Woodworking_joints#/media/File:Mitre-joint.png
+https://en.wikipedia.org/wiki/Woodworking_joints#/media/File:Dado_joint.png
+https://en.wikipedia.org/wiki/Dado_(joinery)#/media/File:Woodworking-joint-dado.svg
+https://en.wikipedia.org/wiki/Dado_(joinery)#/media/File:Woodworking-joint-dado.svg
+https://en.wikipedia.org/wiki/Woodworking_joints#/media/File:Mortise_tenon.png
+https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Pen_en_gatverbinding_schuine_borst_001.svg/1920px-Pen_en_gatverbinding_schuine_borst_001.svg.png
+https://en.wikipedia.org/wiki/Mortise_and_tenon#/media/File:Mortise.svg
+https://en.wikipedia.org/wiki/Mortise_and_tenon#/media/File:MortiseCornerStub.svg
+https://en.wikipedia.org/wiki/Mortise_and_tenon#/media/File:MortiseHaunch.svg
+https://en.wikipedia.org/wiki/Mortise_and_tenon#/media/File:MortiseFoxTail.svg
+https://en.wikipedia.org/wiki/Mortise_and_tenon#/media/File:PinnedTenon.svg
+https://en.wikipedia.org/wiki/Mortise_and_tenon#/media/File:FeatherTenon.svg
+https://en.wikipedia.org/wiki/Woodworking_joints#/media/File:BirdsMouthJoint.svg
+https://en.wikipedia.org/wiki/Woodworking_joints#/media/File:Joinery-SimpleHalved.svg

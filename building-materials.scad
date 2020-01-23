@@ -67,7 +67,9 @@ DOVETAIL_LAP = 6; // form of LAP JOINT
 RABBET = 7;
 GROOVE = 8; // with-grain; similiar to TRENCH (dado); [Through and Blind]
 TRENCH = 9; // cross-grain; similiar to GROOVE; [Through and Blind]
-HEAL_CUT = 10; // angled cut out in material
+HEEL_SEAT_CUT = 10; // angled cut out in material
+PIN = 11;
+ 
 
 /*
  * from wikipedia.org - woodworking joints
