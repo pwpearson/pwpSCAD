@@ -1,0 +1,1 @@
+By No machine-readable author provided. Ludraman assumed (based on copyright claims). - No machine-readable source provided. Own work assumed (based on copyright claims)., Public Domain, https://commons.wikimedia.org/w/index.php?curid=746878

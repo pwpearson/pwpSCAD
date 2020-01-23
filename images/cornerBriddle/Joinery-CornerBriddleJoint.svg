@@ -1,0 +1,41 @@
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="465" width="494" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <defs></defs>
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="Corner Bridle joint">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g style="stroke-linejoin:round;stroke:#000000;stroke-linecap:round;stroke-width:0.8;">
+  <g style="stroke-miterlimit:4;stroke-dasharray:none;">
+   <g style="fill:#dcdcdc;">
+     <path d="m1.0619,19.959,15.75,67.35,183.15,94.5-4.05-72.3z"/>
+     <path d="m206.26,177.16-3.45-72,72.9,33-1.95,73.35z"/>
+     <path d="m404.71,86.859-36.3,234.6,55.5,30.45,56.1-236.55z"/>
+     <path d="m202.51,71.109-3-61.95,205.2,77.7-10.2,66.15z"/>
+     <path d="m219.01,223.59,7.8,205.5,50.85,35.1,8.4-204.3z"/>
+   </g>
+   <g style="fill:#c3c3c3;">
+    <path d="m195.91,109.51,6.9-4.35,3.45,72-6.3,4.65z"/>
+    <path d="m273.76,211.51,6-4.95,2.4-73.05-6.45,4.65-1.8,73.35z"/>
+    <path d="m215.86,96.459-6.6,3.75,6.9,3.6z"/>
+    <path d="m289.36,304.89,4.95,2.7-5.1,5.1z"/>
+    <path d="m480.01,115.36-56.1,236.55,10.35-13.05,58.35-235.8z"/>
+    <path d="m286.06,259.89,5.85-5.4-2.7,58.2,5.1-5.1,3.3-58.35,5.55-5.1-12.75,205.05-12.75,15z"/>
+    <path d="m484.21,111.16,4.2-3.9-16.35,66.9-3.9,4.05z"/>
+ </g>
+   <g style="fill:#efefef;">
+    <path d="m0.91187,19.809,20.55-9.3,194.4,85.95-6.6,3.75,72.9,33.15-6.45,4.8-73.05-33.15-6.75,4.5z"/>
+    <path d="m199.51,9.1591,15.15-8.25,203.55,74.85-4.35,3.6,74.55,27.9-4.2,3.9-74.85-28.05-4.65,3.75z"/>
+    <path d="m219.01,223.59,6-4.8,66.9,35.7-5.85,5.4z"/>
+    <path d="m230.86,214.14,5.85-4.65,66.45,34.8-5.55,4.95z"/>
+    <path d="m418.21,75.759,74.4,27.3-4.2,4.05-74.55-27.75,4.35-3.6z"/>
+    <path d="m409.36,83.109-4.65,3.75,75.3,28.5,4.2-4.2z"/>
+   </g>
+  </g>
+  <path d="m230.86,214.14,66.75,35.1-3.3,58.35-5.1-2.55,2.7-50.55-60.9-32.4z" style="fill:#8d99a1;"/>
+ </g>
+</svg>
