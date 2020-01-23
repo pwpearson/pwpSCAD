@@ -4,10 +4,10 @@
  */
 
 
-include <MCAD/materials.scad>
-include <missile/missile.scad>
-include <pwpSCAD/rightTriangleSolver.scad>
-use <pwpSCAD/util.scad>
+include <MCAD/materials.scad>  // custom material colors
+include <missile/missile.scad> // vector ops like head, tail, empty, reverse, etc
+include <pwpSCAD/rightTriangleSolver.scad> // solves attributes for right triangles
+include <pwpSCAD/util.scad>    // general purpose functions for pwpSCAD library
 
 DOC_SCALING_FACTOR = 5;
 
@@ -19,6 +19,12 @@ DIM_LINE_PAD = .5;
 
 $_debug = true;
 
+// small number used in comparisions and inversion object scaling to
+// elimate or minimize rendering artifacts
+epsilon = 1e-003;
+
+// facings:
+
 /*
  * newly created objects prior to translations
  * have default board() facing of
@@ -27,6 +33,8 @@ $_debug = true;
  * +y axis == length
  * +z axis == depth
  */
+
+// used to position lap joints at the end of the board
  TOP_FRONT = 0;     //[0, 1, 1]                z |
  TOP_LEFT = 1;      //[-1, 1, 0]                 |   * y
  TOP_BACK = 2;      //[0, 1, -1]                 |  *
@@ -36,6 +44,25 @@ $_debug = true;
  BOTTOM_BACK = 6;   //[0, -1, -1]
  BOTTOM_RIGHT = 7;  //[1, -1, 0]
 
+// used to position lap joints on a face but not necassarily at the end of the board
+ FRONT = 8;
+ LEFT = 9;
+ BACK = 10;
+ RIGHT = 11;
+ TOP = 12;
+ BOTTOM = 13;
+/**************************************************************************************/
+
+// alignment:
+// for grooves, dado, mortis, etc
+ALIGN_TOP = 0;
+ALIGN_CENTER = 1;
+ALIGN_BOTTOM = 2;
+
+/**************************************************************************************/
+
+// vector elements:
+//    when a vector describes a board, lap joint, etc
 /*
  * Vector object dimension elements
  * board = [ width, length, thickness]
@@ -49,14 +76,22 @@ THICKNESS = 2;
 ANGLE = 3;
 FACING = 4;
 
-// LAP_JOINT points
+/**************************************************************************************/
+
+// lap joint points:
+//   for internal use to position dimension lines
+//   and inversion objects for difference()
 BOTTOM_LEFT_POINT = 0;
 TOP_LEFT_POINT = 1;
 TOP_RIGHT_POINT = 2;
 BOTTOM_RIGHT_POINT = 3;
 EXTRUDE_DEPTH = 4;
 
-// joinery operations
+/**************************************************************************************/
+
+
+// joinery operations:
+//   not all have been implemented
 LAP_JOINT = 0; // maybe do specializations instead of different operations
 CROSS_LAP = 1; // form of LAP JOINT
 MITER = 2; // another form of LAP JOINT
@@ -69,7 +104,7 @@ GROOVE = 8; // with-grain; similiar to TRENCH (dado); [Through and Blind]
 TRENCH = 9; // cross-grain; similiar to GROOVE; [Through and Blind]
 HEEL_SEAT_CUT = 10; // angled cut out in material
 PIN = 11;
- 
+
 
 /*
  * from wikipedia.org - woodworking joints
@@ -106,13 +141,11 @@ PIN = 11;
 eightFeet = 8 * 12;
 fourFeet = 4 * 12;
 
-epsilon = 1e-003;
-
 /*
 reference
 
 nominal   actual (inches)   actual (mm)
----------------------------------
+---------------------------------------
 1 x 2	    3/4 x 1 1/2	      19 x 38
 1 x 3	    3/4 x 2 1/2	      19 x 64
 1 x 4	    3/4 x 3 1/2	      19 x 89
@@ -183,12 +216,12 @@ function _inverseLapPoints(lapWidth, lapLength, lapThickness, shoulderAngle) =
     tangle = debugTap(rightTriangleSolver(a = lapWidth, beta = shoulderAngle), "tangle: "),
     b = is_def(tangle) ? tangle[1] :0,
 
-    BOTTOM_LEFT = [0,0],
-    TOP_LEFT = shoulderAngle >= 0 ? [0, lapLength] : [0, lapLength - b],
-    TOP_RIGHT = shoulderAngle > 0 ? [lapWidth, lapLength - b] : [lapWidth, lapLength],
-    BOTTOM_RIGHT = [lapWidth, 0],
+    bottomLeft = [0,0],
+    topLeft = shoulderAngle >= 0 ? [0, lapLength] : [0, lapLength - b],
+    topRight = shoulderAngle > 0 ? [lapWidth, lapLength - b] : [lapWidth, lapLength],
+    bottomRight = [lapWidth, 0],
 
-    pts = debugTap([BOTTOM_LEFT, TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, lapThickness], fn2Str(fn, args))
+    pts = debugTap([bottomLeft, topLeft, topRight, bottomRight, lapThickness], fn2Str(fn, args))
   )
   assert( b < lapLength, "lap length not long enough for the desired angle")
   pts;
@@ -223,13 +256,68 @@ module _inverseLap(points) {
 
   color(Oak)
   mvrot(z = -epsilon)
-  linear_EXTRUDE_DEPTH(height = points[EXTRUDE_DEPTH])
+  linear_extrude(height = points[EXTRUDE_DEPTH])
     polygon( points = take(points, 4) + epsilonAdjust, convexity = 1);
 }
+/******************************************************************************/
+/*
+ * _inverseCrossLap
+ *
+ */
+function _inverseCrossLap(lapWidth, lapLength, lapDepth, lapAngle) =
+  //assert()
+  let(
+    fn = "_inverseCrossLap",
+    args = [lapWidth, lapLength, lapDepth, lapAngle],
+    bottomLeft = [0,0],
+    topLeft = [0, lapLength],
+    topRight = [lapWidth, lapLegth],
+    bottomRight = [lapWidth, 0],
+
+    pts = debugTap([bottomLeft, topLeft, topRight, bottomRight, lapThickness], fn2Str(fn, args))
+  )
+  //assert()
+  pts;
+
+/******************************************************************************/
+
+/******************************************************************************/
+/*
+ * _inverseTemplate
+ *
+ */
+function _inverseTemplate(lapWidth, lapLength, lapDepth, lapAngle) =
+  //assert()
+  let(
+    fn = "_inverseTemplate",
+    args = [lapWidth, lapLength, lapDepth, lapAngle],
+    bottomLeft = [0,0],
+    topLeft = [0, 0],
+    topRight = [0, 0],
+    bottomRight = [0, 0],
+
+    pts = debugTap([bottomLeft, topLeft, topRight, bottomRight, lapThickness], fn2Str(fn, args))
+  )
+  //assert()
+  pts;
+
+/******************************************************************************/
 
 /*
+ * Creates a board with specified dimensions and attempts to apply all operations
+ *
+ * NOTE: because this is a recursive module be aware that the more operations the worse the
+ * performance will be. Modules do not support tail-recursion.
+ *
+ * NOTE: operations are done in reverse order. Overall this should not make any difference
+ *       to the final result.
+ *
  * width, length, thickness = board dimensions
  * op = [operation, [arg1, arg2, ..., argn]]
+ *
+ * op ex: [LAPJOINT, [3.5, 9.25, 1.25, 0, topFront]]
+ *        will create a lap joint at the topFront of the board. With a width of 3.5,
+ *        length fo 9.25, depth of 1.25, and angle of 0.
  */
 module joinery(width, length, thickness, ops, dimPadding=0){
   if(!empty(ops))
@@ -239,6 +327,7 @@ module joinery(width, length, thickness, ops, dimPadding=0){
         op = head(ops);
         type = op[0];
         args = op[1];
+        desc = is_def(op[2]) ? op[2] : "";
         if(type == LAP_JOINT){
 
           lapWidth = args[WIDTH];
@@ -247,13 +336,17 @@ module joinery(width, length, thickness, ops, dimPadding=0){
           shoulderAngle = args[ANGLE];
           facing = args[FACING];
 
-          assert(abs(shoulderAngle) < 90, "shoulder angle of the lap has to be less than 90°");
+// this is seems to have issues within a recursive call. Move to _inverseLapPoints
+//          assert(abs(shoulderAngle) < 90, "shoulder angle of the lap has to be less than 90°");
 
           points = _inverseLapPoints(lapWidth, lapLength, lapThickness, shoulderAngle);
           facingTrans = _inverseLapTransformations(facing, width, length, thickness);
 
           translate(facingTrans[0]) rotate(facingTrans[1])
             _inverseLap(points);
+        }
+        else {
+          echo(str("<b>Joinery Operation: ", op, " not supported.</b>"));
         }
     }
   else
@@ -265,6 +358,7 @@ module joinery(width, length, thickness, ops, dimPadding=0){
  *
  */
 module boardWithLap(width, length, thickness, lapWidth=undef, lapLength=undef, lapThickness=undef, shoulderAngle=0, facing=TOP_FRONT, dimPadding=0){
+  echo("<b>boardWithLap has been DEPRECATED, Use the joinery method</b>");
   assert(abs(shoulderAngle) < 90, "shoulder angle of the lap has to be less than 90°");
 
   echo(str("lapWidth: ", lapWidth, " lapLength: ", lapLength, " lapThickness: ", lapThickness));
@@ -283,14 +377,14 @@ module boardWithLap(width, length, thickness, lapWidth=undef, lapLength=undef, l
   }
 
   if(dimPadding > 0)
-    _LAP_JOINTDimensions(facingTrans, points, dimPadding, lapWidth, lapLength, lapThickness, shoulderAngle);
+    _lapJointDimensions(facingTrans, points, dimPadding, lapWidth, lapLength, lapThickness, shoulderAngle);
 }
 
 /*
- *
+ * Todo: Generalize this so all forms of joinery can display their dimensions
  *
  */
-module _LAP_JOINTDimensions(facingTrans, points, dimPadding, lapWidth, lapLength, lapThickness, shoulderAngle){
+module _lapJointDimensions(facingTrans, points, dimPadding, lapWidth, lapLength, lapThickness, shoulderAngle){
 // dimension lines for the lap joint; have to be done after the difference()
   lenLeftSide = norm(points[TOP_LEFT_POINT] - points[BOTTOM_LEFT_POINT]);
   lenRightSide = norm(points[TOP_RIGHT_POINT] - points[BOTTOM_RIGHT_POINT]);
@@ -385,6 +479,14 @@ module board(width, length, thickness, dimPadding=0){
   }
 }
 
+/******************************************************************************/
+// dimension lumber short-cut modules
+//   currently dimension lumber created with these short-cuts
+//   are not implicitly support by joinery(). To use dimension
+//   lumber with joinery you will have to explicitly define the
+//   board either with the reference data above or using the
+//   pre-defined constants.
+
 module lumber(dimension = twoByFour, length = eightFeet) {
   board(dimension[WIDTH], length, dimension[THICKNESS]);
 }
@@ -420,6 +522,8 @@ module fourByFour(length = eightFeet) {
 module mdfSheet(length = eightFeet, width = fourFeet, thickness = 0.5) {
   color(FiberBoard) cube([ thickness, width, length ]);
 }
+
+// one off's that may or may not stay in this file.
 
 /*
  * Standard Interior Wall

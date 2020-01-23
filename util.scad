@@ -90,7 +90,7 @@ function parseArgsToString(args, i=0, accum=undef) =
                   let (element = is_undef(args[i]) ? "" : args[i])
                   parseArgsToString(args, i + 1, is_undef(accum) ? element : str(accum, ", ", element));
 
-echo(fn2Str("test", [1,2,3]));
-echo(fn2Str("test2", [1,2,3], 6));
+//echo(fn2Str("test", [1,2,3]));
+//echo(fn2Str("test2", [1,2,3], 6));
 
 function is_def(a) = !is_undef(a);
