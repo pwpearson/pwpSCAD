@@ -1,5 +1,3 @@
-[TOC]
-
 ## pwpSCAD library
 
 ### Right Triangle Solver
@@ -45,7 +43,7 @@ ex:
                       +++++++ 𝜷 = 36.87
                         b=4
                   h=2.4
-                  
+
 rightTriagleSolver(a=3, b=4); => [3, 4, 5, 53.13, 36.87, 2.4]
 
 where: 3,4 - the length of the cathetuses
@@ -79,7 +77,7 @@ Most of these functions return a singlue numeric value.
 * **_height(c1, c2, hypot):** calculate the height given both cathetuses and the hypotenuse.
 
 ##### complex functions; returns rightTriangle solution given specific arguments.
-All these functions return a list in the form of [a, b, c, alpha, beta, h]; 
+All these functions return a list in the form of [a, b, c, alpha, beta, h];
 
 * **_raCOA(c, oA):** returns right triangle solution; given cathetus and opposite angle.
 * **_raCAA(c, aA):** returns right triangle solution; given cathetus and adjacent angle.
@@ -99,5 +97,33 @@ Debug functions
 ### Math (tbd)
 Math functions
 
-### Building-Materials (tbd)
+### Boards
 Generates building material for woodworking models.
+
+### Joinery
+Provides woodworking joinery operations for Boards.
+
+#### Functions:
+
+##### Internal:
+
+* _inverseLapPoints()
+* _inverseLapTransformactions()
+* _inverseLap()
+
+* _inverseCrossLapPoints()
+* _inverseCrossLapTransformations()
+* _inversCrossLap()
+
+* _lapJoinDimensions()
+
+##### Public
+* joinery()
+
+* is_EndFacing()
+* is_Facing()
+* is_Alignment()
+* is_Joinery()
+
+* lapJointOp()
+* crossLapOp()
