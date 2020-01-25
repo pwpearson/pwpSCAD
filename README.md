@@ -94,8 +94,23 @@ Utility functions
 ### Debug (tbd)
 Debug functions
 
+* debug() (module)
+* debug() (function)
+* debugTap()
+* assertFalse()
+
 ### Math (tbd)
 Math functions
+
+* NaN()
+* trunc()
+* sumV()
+* gcd()
+* nearest()
+* splitDecimal()
+* reduceFraction()
+* feetToInches()
+* inchesToFeet()
 
 ### Boards
 Generates building material for woodworking models.
@@ -107,23 +122,29 @@ Provides woodworking joinery operations for Boards.
 
 ##### Internal:
 
+>creates lap joint on end of board
 * _inverseLapPoints()
 * _inverseLapTransformactions()
 * _inverseLap()
 
+>creates cross lap joint between ends of board
 * _inverseCrossLapPoints()
 * _inverseCrossLapTransformations()
 * _inversCrossLap()
 
+>creates the line dimension drawing (needs more work since cross lap was added)
 * _lapJoinDimensions()
 
 ##### Public
+>entry point
 * joinery()
 
+>true functions
 * is_EndFacing()
 * is_Facing()
 * is_Alignment()
 * is_Joinery()
 
+>argument generators for the different operations
 * lapJointOp()
 * crossLapOp()
