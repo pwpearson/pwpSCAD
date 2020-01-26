@@ -16,8 +16,8 @@ args:
            a: Cathetus
            b: Other Cathetus
            c: hypotenuse
-   alpha (⍺): angle opposite of Cathetus a; angle adjacent of Cathetus b
-    beta (𝜷): angle adjacent of Cathetus a; angle opposite of Cathetus b
+   alpha (⍺): angle opposite of Cathetus a; angle adjacent of Cathetus b
+    beta (𝜷): angle adjacent of Cathetus a; angle opposite of Cathetus b
            h: height of triangle
 ```
 
@@ -34,13 +34,13 @@ This function will also return undef for invalid combinations or argument pairs.
 ##### Sample Solution
 ```
 ex:
-            ⍺ = 53.13 +
+            ⍺ = 53.13 +
                       ++
                       + +
                   a=3 +  + c=5
                       +   +
                       ++   +
-                      +++++++ 𝜷 = 36.87
+                      +++++++ 𝜷 = 36.87
                         b=4
                   h=2.4
 
@@ -102,6 +102,7 @@ Debug functions
 ### Math (tbd)
 Math functions
 
+<<<<<<< HEAD
 * NaN()
 * trunc()
 * sumV()
@@ -148,3 +149,7 @@ Provides woodworking joinery operations for Boards.
 >argument generators for the different operations
 * lapJointOp()
 * crossLapOp()
+=======
+### Building-Materials (tbd)
+Generates building material for woodworking models.
+>>>>>>> c5ad36524caa635710e81b13fe77f1b45be74de2
