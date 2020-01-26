@@ -27,11 +27,14 @@
  */
 
 /*
- * NaN - define not-a-number
- *
- *
+ * nan - not a number
  */
 function NaN() = 0 / 0;
+
+/*
+ * Infinity
+ */
+inf = 1e200 * 1e200;
 
 /*
  * trunc - truncates a number to it's rational part
@@ -65,14 +68,16 @@ function gcd(a,b) = b == 0 ? a : gcd(b,a%b);
 /*
  * nearest - round x to the nearest n-th. Like nearest 1/16th, 1/32th, etc
  *
- * ie: echo(nearest(.138, 64)) // ECHO:
+ * ie: echo(nearest(.138, 64)); // ECHO: 0.140625 ### 9/64
  *
  */
 function nearest(x, n) = round(x * n)/n;
 
 /*
  * splitDecimal - split a decimal into it's rational and decimal parts
+ *                and returns them as a vector "[rational, fraction]"
  *
+ * ie: echo(splitDecimal(4.6)); // ECHO: [4, 0.6]
  */
 function splitDecimal(x) =
   let(
@@ -100,3 +105,19 @@ function feetToInches(feet) = feet * 12;
  *
  */
 function inchesToFeet(inches) = inches/12;
+
+/*
+ * lookup2 - lookup value n in tableValues and return first matching value.
+ *
+ * works with decimal keys and string values unlike built-in lookup fn.
+ *
+ * ex:
+ *
+ * fractions = [
+ * [0.015625, "1/64\""],
+ * [0.03125, "1/32\""],
+ * [0.046875, "3/64\""]]
+ *
+ * echo(lookup2(0.015625, fractions)); ECHO: "1/64""
+ */
+function lookup2(n, tableValues) = [ for (value = tableValues) if(n == value[0]) value[1] ][0];

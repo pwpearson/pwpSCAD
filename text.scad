@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+include <pwpSCAD/debug.scad>
+include <pwpSCAD/math.scad>
+
 /*
  * fractionStr - generates the string representation of decimal value.
  *               generally expected to be used to display dimensions
@@ -46,7 +49,7 @@ let(
   nearest64th = debugTap(nearest(fractions, 64), "Nearest 64th"),
   reduction = debugTap(reduceFraction(nearest64th * 1000, 1000), "Reduction")
 )
-str(feet > 0 ? str(feet, "\' ") : "",
-    inches > 0 ? str(inches, " ") : "",
+str(feet > 0 ? str(feet, (inches == 0 && reduction[0] == 0) ? "\'" : "\' ") : "",
+    inches > 0 ? str(inches, (reduction[0] == 0) ? "\"": " ") : "",
     reduction[0] > 0 ? str(reduction[0], "/", reduction[1], "\"") : ""
 );
