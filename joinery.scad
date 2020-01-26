@@ -142,6 +142,13 @@ PIN = 11;
 
 function is_Joinery(x) = (x >= LAP_JOINT && x <= PIN);
 
+// element locations for joinery operations
+OP_TYPE = 0;
+OP_ARGS = 1;
+OP_DESC = 2;
+
+// operational values needed to generate a lap joint
+// [ LAP_JOINT, [width, length, depth, shoulder angle]]
 function lapJointOp(width, length, thickness, angle, facing, desc="") =
   assert(is_EndFacing(facing), "Not a valid facing.")
   assert(abs(angle) < 90, "Angle has to be less than 90 degrees")
@@ -150,8 +157,16 @@ function lapJointOp(width, length, thickness, angle, facing, desc="") =
   assert(is_def(thickness), "Thickness not defined")
   [LAP_JOINT, [width, length, thickness, angle, facing], desc];
 
-function crossLapOp(length, depth, face, alignment, offset, from) =
-  [length, depth, face, alignment, offset, from];
+// operational values needed to generate a cross joint
+//[CROSS_LAP [length, depth, alignment, facing, offset, from], description]
+function crossLapOp(length, depth, alignment = BOTTOM, facing = FRONT, offset, from = BOTTOM, desc="") =
+  assert(is_Facing(facing), "Not a valid facing.")
+  assert(is_def(length), "Length not defined")
+  assert(is_def(depth), "Depth not defined")
+  assert(is_def(offset), "Offset not defined")
+  assert(from == TOP || from == BOTTOM, "from is not valid, expect TOP or BOTTOM")
+  assert(alignment >= ALIGN_TOP && alignment <= ALIGN_BOTTOM, "alignment is not valid"
+  [length, depth, alignment, face, offset, from];
 
 
 /*

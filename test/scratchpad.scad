@@ -30,3 +30,33 @@ echo(str("9/32 reduces to: ", w[0], "/", w[1]));
 
 echo("8/32 gcd: ", gcd(8,32));
 echo("9/32 gcd: ", gcd(9,32)); */
+
+x = [1, 2, 3, 4];
+y = [1, "two", 3, 4];
+w = [true, true, true];
+z = [true, false, true];
+
+echo(str("x: ", x));
+echo(str("y: ", y));
+
+echo([for (i = x) is_num(i) == true]);
+echo([for (i = y) is_num(i)]);
+
+echo(str("sumV(w)", sumV(w)));
+echo(str("sumV(z)", sumV(z)));
+
+echo(str("[]"), [] == true);
+echo(str("[true]"), [true] == true);
+
+echo(str("bits-x ", sumV([for (i = x) if (is_num(i)) 1 else 0]) == len(x)));
+echo(str("bits-y ", sumV([for (i = y) if (is_num(i)) 1 else 0]) == len(y)));
+
+echo(str("is_num(x)", is_num(x)));
+
+echo(nearest(.138, 64));
+
+echo(fractionStr(0.140625));
+
+echo(splitDecimal(4.6));
+
+echo(reductFraction(10/64))
