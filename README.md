@@ -2,6 +2,9 @@
 
 ### Right Triangle Solver
 
+
+
+
 File: `rightTriangleSolver.scad`
 
 There are many functions in this module that can be reused however they are intented to support the main function called `rightTriangleSolver`
