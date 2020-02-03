@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-$_debug = false;
+$_debug = true;
 
 /*
  * debug module - echo string (s) to console if
@@ -47,14 +47,6 @@ module debug(s)
 
 function debug(s) =
   [ for (i = [1:1]) if ($_debug) echo(s) ];
-
-/*
- * Assert False - Always fails and echo's s to console
- * use in braches of code that should never be reached.
- */
-function assertFalse(s) = assert(false, s) undef;
-
-
 
 /*
  * Similar to Ruby's Tap function.

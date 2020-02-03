@@ -32,6 +32,7 @@ include <pwpSCAD/rightTriangleSolver.scad> // solves attributes for right triang
 include <pwpSCAD/util.scad>    // general purpose functions for pwpSCAD library
 include <pwpSCAD/board.scad>   // defines custom and dimentinal lumber material.
 include <pwpSCAD/debug.scad>   // debug functions
+include <pwpSCAD/asset.scad>   // assert functions
 
 DOC_SCALING_FACTOR = 5;
 
@@ -327,12 +328,22 @@ function _inverseTemplate(lapWidth, lapLength, lapThickness, lapAngle) =
   //assert()
   pts;
 
+function _joineryPoints(type, board, args=[]) =
+  type == LAP_JOINT ? function () _inverseLapP([args[0], args[1], args[2], args[3]) :
+  type = CROSS_LAP  ? function () _inverseCrossLapPoints[board[WIDTH], args[0], args[1], 0,) :
+  undef;
+
+function _joineryTransforms(type, board, args=[]) =
+  type = LAP_JOINT ? function () _inverseLapTransformations(args[4], board[0], board[1], board[2]) :
+  type = CROSS_LAP ? function () _inverseCrossLapTransformations(args[3], args[0], args[1], args[2], args[4], args[5]) :
+  undef;
+
+
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/
-$dimension = undef;
 
 /*
  * Creates a board with specified dimensions and attempts to apply all operations
@@ -351,67 +362,27 @@ $dimension = undef;
  *        length fo 9.25, depth of 1.25, and angle of 0.
  */
 module joinery(width, length, thickness, ops, dimPadding=0){
+  // recursively go through each operation and apply it to the board
   if(!empty(ops))
     difference(){
       joinery(width, length, thickness, tail(ops), dimPadding);
         // apply current operation
+        board = [width, length, thickness];
         op = head(ops);
         type = op[0];
         args = op[1];
         desc = is_def(op[2]) ? op[2] : "";
 
-        if(type == LAP_JOINT){
-          //args(width, length, thickness, angle, facing)
-          lapWidth = args[WIDTH];
-          lapLength = args[LENGTH];
-          lapThickness = args[THICKNESS];
-          shoulderAngle = args[ANGLE];
-          facing = args[FACING];
+        points = _joineryPoints(type, board, args)();
+        facingTrans = _joineryTransforms(type, board, args)();
 
-          points = _inverseLapPoints(lapWidth, lapLength, lapThickness, shoulderAngle);
-          facingTrans = _inverseLapTransformations(facing, width, length, thickness);
+        assert(is_undef(points), str("Joinery Operation: ", op, " not supported."));
 
-          $dimension = [facingTrans, points, dimPadding, lapWidth, laplength, lapDepth, shoulderAngle];
-
-          translate(facingTrans[0]) rotate(facingTrans[1])
-            _inverseLap(points);
-        }
-
-        if(type == CROSS_LAP){
-          //args([width], length, depth, [angle], facing, alignment, offset, from)
-          lapWidth = width;
-          lapLength = args[0];
-          lapDepth = args[1];
-          lapThickness = lapDepth;
-          shoulderAngle = 0;
-          facing = args[3];
-
-          alignment = args[2];
-          offset = args[4];
-          from = args[5];
-
-
-
-
-          points = _inverseCrossLapPoints(width, lapLength, lapDepth, shoulderAngle);
-          facingTrans = _inverseCrossLapTransformations(facing, lapLength, lapDepth, alignment, offset, from) ;
-
-          $dimension = [facingTrans, points, dimPadding, lapWidth, laplength, lapDepth, shoulderAngle];
-
-          translate(facingTrans[0]) rotate(facingTrans[1])
-          #  _inverseCrossLap(points);
-        }
-
-        else {
-          echo(str("Joinery Operation: ", op, " not supported."));
-        }
-    }
-
+        translate(facingTrans[0]) rotate(facingTrans[1])
+          _inverseLap(points);
+  }
   else
     board(width, length, thickness, dimPadding + 2);
-
-  if (dimPadding > 0) _lapJointDimensions($dimension[0], $dimension[1], $dimension[2], $dimension[3], $dimension[4], $dimension[5], $dimension[6]);
-
 }
 
 /*

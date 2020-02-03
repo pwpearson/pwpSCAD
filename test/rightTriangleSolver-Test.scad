@@ -7,13 +7,12 @@
 
 use <pwpSCAD/debug.scad>
 use <pwpSCAD/rightTriangleSolver.scad>
+include <pwpSCAD/math.scad>
+include <pwpSCAD/assert.scad>
 
-$_debug = false;
+$_debug = true;
 
-// A really small value useful in comparing FP numbers. ie: abs(a-b)<EPSILON
-epsilon = 1e-003;
-
-debug(str("epsilon: ", epsilon));
+$epsilon = 1e-003;
 
 /*
  * Assume the following right triangle for the following tests
@@ -56,14 +55,8 @@ constAngle1 = constAngle1();
 constAngle2 = constAngle2();
 constHeight = constHeight();
 
-function _eq(x, y) = ($_debug) ?
-    echo(str("x: ", x, ", y: ", y, ", abs(x-y): ", abs(x - y))) abs(x - y) < epsilon :
-    abs(x - y) < epsilon;
-
 targetVector345 = [ 3, 4, 5, 53.13, 36.87, 2.4 ];
 targetVector435 = [ 4, 3, 5, 36.87, 53.13, 2.4 ];
-
-function assertStr(subject, actual, expected) = str(subject, " - Actual: ", actual, " Expected: ", expected);
 
 /*
  *
@@ -81,22 +74,22 @@ module assertRightTriangleVectors(sv, tv)
   debug(str("assertRightTriangleVectors.sv: ", sv));
   debug(str("assertRightTriangleVectors.tv: ", tv));
 
-  assert(_eq(sv[constCathetus1], tv[constCathetus1]),
+  assert(eq(sv[constCathetus1], tv[constCathetus1]),
          str("Cathetus1 - Actual: ", sv[constCathetus1], " Expected: ", tv[constCathetus1]));
 
-  assert(_eq(sv[constCathetus2], tv[constCathetus2]),
+  assert(eq(sv[constCathetus2], tv[constCathetus2]),
          str("Cathetus2 - Actual: ", sv[constCathetus2], " Expected: ", tv[constCathetus2]));
 
-  assert(_eq(sv[constHypot], tv[constHypot]),
+  assert(eq(sv[constHypot], tv[constHypot]),
          str("Hypot - Actual: ", sv[constHypot], " Expected: ", tv[constHypot]));
 
-  assert(_eq(sv[constAngle1], tv[constAngle1]),
+  assert(eq(sv[constAngle1], tv[constAngle1]),
          str("Angle1 - Actual: ", sv[constAngle1], " Expected: ", tv[constAngle1]));
 
-  assert(_eq(sv[constAngle2], tv[constAngle2]),
+  assert(eq(sv[constAngle2], tv[constAngle2]),
          str("Angle2 - Actual: ", sv[constAngle2], " Expected: ", tv[constAngle2]));
 
-  assert(_eq(sv[constHeight], tv[constHeight]),
+  assert(eq(sv[constHeight], tv[constHeight]),
          str("Height - Actual: ", sv[constHeight], " Expected: ", tv[constHeight]));
 }
 
@@ -305,7 +298,7 @@ module test_cathetusAFromHeightAngle()
   echo("**** test_cathetusAFromHeightAngle - run");
   a = _cathetusAFromHeightAngle(a = 36.87, h = 2.4);
 
-  assert(_eq(a, 3), assertStr("cathetusAFromHeightAngle", a, 3));
+  assert(eq(a, 3), assertStr("cathetusAFromHeightAngle", a, 3));
 }
 
 test_cathetusAFromHeightAngle();
@@ -327,7 +320,7 @@ module test_cathetusBFromHeightAngle()
   echo("**** test_cathetusBFromHeightAngle - run");
   b = _cathetusBFromHeightAngle(a = 36.87, h = 2.4);
 
-  assert(_eq(b, 4), assertStr("cathetusBFromHeightAngle", b, 4));
+  assert(eq(b, 4), assertStr("cathetusBFromHeightAngle", b, 4));
 }
 
 test_cathetusBFromHeightAngle();

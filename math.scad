@@ -26,6 +26,12 @@
  * SOFTWARE.
  */
 
+
+$_debug = true;
+
+// A really small value useful in comparing FP numbers. ie: abs(a-b)<EPSILON
+epsilon = 1e-009;
+
 /*
  * nan - not a number
  */
@@ -62,7 +68,12 @@ function sumV(v, i = 0, tot = undef) =
  * gcd - greatest common denomiator
  *
  */
-function gcd(a,b) = b == 0 ? a : gcd(b,a%b);
+function gcd(a,b) =
+  assert(is_num(a), "Parameter a is not numeric")
+  assert(is_num(b), "Parameter b is not numeric")
+  _gcd(a, b);
+
+function _gcd(a, b) = b == 0 ? a : gcd(b,a%b);
 
 
 /*
@@ -71,7 +82,10 @@ function gcd(a,b) = b == 0 ? a : gcd(b,a%b);
  * ie: echo(nearest(.138, 64)); // ECHO: 0.140625 ### 9/64
  *
  */
-function nearest(x, n) = round(x * n)/n;
+function nearest(x, n) =
+  assert(is_num(x), "Parameter x is not numeric")
+  assert(is_num(n), "Parameter n is not numeric")
+  round(x * n)/n;
 
 /*
  * splitDecimal - split a decimal into it's rational and decimal parts
@@ -80,6 +94,7 @@ function nearest(x, n) = round(x * n)/n;
  * ie: echo(splitDecimal(4.6)); // ECHO: [4, 0.6]
  */
 function splitDecimal(x) =
+  assert(is_num(x), "Parameter x is not numeric")
   let(
     rationalPart = debugTap(trunc(x), "Rational"),
     decimalPart = debugTap(x - rationalPart, "Decimal")
@@ -107,17 +122,33 @@ function feetToInches(feet) = feet * 12;
 function inchesToFeet(inches) = inches/12;
 
 /*
- * lookup2 - lookup value n in tableValues and return first matching value.
+ * all_num - returns true if all elements are numberic, else false
  *
- * works with decimal keys and string values unlike built-in lookup fn.
- *
- * ex:
- *
- * fractions = [
- * [0.015625, "1/64\""],
- * [0.03125, "1/32\""],
- * [0.046875, "3/64\""]]
- *
- * echo(lookup2(0.015625, fractions)); ECHO: "1/64""
+ * flattens nested lists to determine if all values are numeric.
  */
-function lookup2(n, tableValues) = [ for (value = tableValues) if(n == value[0]) value[1] ][0];
+function all_num(list) =
+  !is_list(list)
+    ? false
+    : len(list) == 0
+      ? false
+      : [ for (element = [for (i = list) each i]) if (!is_num(element)) false ][0] == undef ? true : false;
+
+
+/*
+ * compare equality using epsilon to adjust for precision descrepencies between values
+ * aka, are the values equal within a given variance (epsilon)
+ *
+ */
+/* function _eq(x, y) = ($_debug) ?
+    echo(str("x: ", x, ", y: ", y, ", abs(x-y): ", abs(x - y))) abs(x - y) < epsilon :
+    abs(x - y) < epsilon; */
+
+function eq(x, y, _epsilon = epsilon) =
+  let(
+    // take the max episolon, either file level or argument level
+    __epsilon = debugTap(max($epsilon, _epsilon), "epsilon"),
+    diff = debugTap(abs(x -y), "diff(x, y)"),
+    rslt = debugTap(diff <= __epsilon,
+        str("(x, y): (", x, ",", y, ") epsilon: ", __epsilon))
+  )
+  rslt;
